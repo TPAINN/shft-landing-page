@@ -723,6 +723,13 @@ function App() {
         .to(".community-copy", { yPercent: -16, scale: 1.012, autoAlpha: 0, transformOrigin: "50% 100%", ease: "power1.in", duration: .9 }, 6.55);
     }, root);
 
+    // Phone screens wait off-canvas until their push, where lazy loading would
+    // never fetch them in time. Warm them once the hero has finished loading.
+    const warmScreens = () => root.current?.querySelectorAll(".phone-screen").forEach((image) => { image.loading = "eager"; });
+    if (document.readyState === "complete") warmScreens();
+    else window.addEventListener("load", warmScreens, { once: true });
+    contextCleanupsGlobal.push(() => window.removeEventListener("load", warmScreens));
+
     const refresh = () => { ScrollTrigger.sort(); ScrollTrigger.refresh(); };
     let mounted = true;
     document.fonts.ready.then(() => { if (mounted) refresh(); });
