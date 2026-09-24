@@ -1,0 +1,9 @@
+{
+  "promptManifest": "exercise-generation-prompts.json",
+  "sourcePattern": "{slug}.png",
+  "qaStatus": "illustration draft; human movement review required",
+  "assumptions": {
+    "air-bike": "Cardio air-resistance/assault bicycle, not a supine bicycle-crunch movement.",
+    "hands-bike": "Seated arm ergometer / handcycle."
+  }
+}

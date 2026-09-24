@@ -1,0 +1,11 @@
+node_modules/
+dist/
+media-archive/
+.freebuff/
+.impeccable/
+.hallmark/
+.claude/
+.vercel/
+scripts/__pycache__/
+*.log
+.DS_Store

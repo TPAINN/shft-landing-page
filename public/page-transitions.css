@@ -1,0 +1,25 @@
+/* Visual adaptation of the supplied details.so page-transition-03 brief.
+   Native document navigation preserves React, scroll history and legal pages;
+   unsupported browsers retain ordinary links rather than a DOM-swap router. */
+@view-transition { navigation: auto; }
+::view-transition-group(root) { animation-duration: 1.4s; }
+::view-transition-image-pair(root) { isolation: isolate; }
+::view-transition-old(root), ::view-transition-new(root) { mix-blend-mode: normal; }
+::view-transition-old(root) {
+  animation: shft-page-out 1.4s cubic-bezier(.4, .3, 0, 1) both;
+}
+::view-transition-new(root) {
+  animation: shft-page-in 1.4s cubic-bezier(.4, .3, 0, 1) both;
+}
+@keyframes shft-page-out {
+  from { opacity: 1; }
+  to { opacity: .5; transform: translateY(-160px) scale(.95); }
+}
+@keyframes shft-page-in {
+  from { transform: translateY(50dvh); clip-path: inset(70% 0 0 0); }
+  to { transform: none; clip-path: inset(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  ::view-transition-group(root), ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+}
