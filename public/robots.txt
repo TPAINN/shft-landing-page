@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /brand-preview/
+Disallow: /structure-preview/
+
+Sitemap: https://shftapp.vercel.app/sitemap.xml
