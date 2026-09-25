@@ -160,9 +160,11 @@ function CommunityParticles() {
   </div>;
 }
 
-function CommunityClip({ src, active }) {
+function CommunityClip({ src, active, showPoster }) {
+  // Posters load once the scene is near (or at once in the static reduced-motion
+  // edition, where the posters are the content) — not with the hero.
   return <div className="community-stream-tile">
-    <video muted loop playsInline preload="none" poster={src.replace(/(?:-compact)?\.mp4$/, ".jpg")}>
+    <video muted loop playsInline preload="none" poster={showPoster ? src.replace(/(?:-compact)?\.mp4$/, ".jpg") : undefined}>
       {active && <source src={src} type="video/mp4" />}
     </video>
   </div>;
@@ -251,7 +253,7 @@ function CommunityWall({ reduced }) {
     {rails.map(({ side, media }) => <div className={`community-stream community-stream-${side}`} key={side}>
       <div className="community-stream-track">
         <div className="community-media-group">
-          {media.map((src) => <CommunityClip src={src} active={near && !reduced} key={src} />)}
+          {media.map((src) => <CommunityClip src={src} active={near && !reduced} showPoster={near || reduced} key={src} />)}
         </div>
       </div>
     </div>)}
@@ -260,11 +262,24 @@ function CommunityWall({ reduced }) {
 
 function App() {
   const internalArrival = Boolean(document.referrer && new URL(document.referrer).origin === window.location.origin);
-  const [loaded, setLoaded] = useState(internalArrival);
+  // The reveal is imperative, not state: re-rendering this whole tree on the
+  // curtain's first frame is exactly what made the exit stutter.
+  const revealed = useRef(internalArrival);
   const [reducedPreference, setReducedPreference] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const reduced = reducedPreference;
   const root = useRef(null);
   const readingAnchor = useRef(null);
+  const introRef = useRef(null);
+  const lenisRef = useRef(null);
+
+  const reveal = () => {
+    if (revealed.current) return;
+    revealed.current = true;
+    root.current.classList.add("is-ready");
+    root.current.querySelector(".preloader").setAttribute("aria-hidden", "true");
+    lenisRef.current?.start();
+    introRef.current?.play();
+  };
   const cinematicAnchor = useRef(null);
 
   const rememberReadingPosition = () => {
@@ -299,25 +314,48 @@ function App() {
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const timer = window.setTimeout(() => setLoaded(true), reduced ? 80 : 1050);
+    const boot = document.getElementById("boot");
+    const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+    const imageReady = (src) => new Promise((resolve) => { const image = new Image(); image.onload = image.onerror = resolve; image.src = src; });
+    // Hand-off: once the boot mark's entrance settles, the React preloader's
+    // identical mark sits beneath it, so removing the boot layer is invisible.
+    // On internal arrivals (preloader skipped) the boot layer fades instead.
+    const handOff = Promise.all(boot ? boot.getAnimations({ subtree: true }).map((animation) => animation.finished) : [])
+      .then(() => imageReady("/media/shft-preloader-icon.webp"));
+    let cancelled = false;
+    handOff.then(() => {
+      if (cancelled || !boot?.isConnected) return;
+      if (internalArrival) { boot.classList.add("is-gone"); boot.addEventListener("transitionend", () => boot.remove(), { once: true }); }
+      else boot.remove();
+    });
+    // Leave when the first frame is genuinely ready (fonts + hero poster),
+    // never before a short brand beat, and never later than a hard cap.
+    const ready = Promise.all([wait(reduced ? 80 : 700), handOff, document.fonts.ready, imageReady("/media/hero-motion-poster.jpg")]);
+    Promise.race([ready, wait(reduced ? 400 : 3200)]).then(() => {
+      if (cancelled) return;
+      if (!internalArrival) boot?.remove();
+      reveal();
+    });
     // One fixed bar for the whole page: the moment the page leaves the hero's
     // first frame it floats on a frosted-glass backing. Content never re-lays out.
     const chrome = document.querySelector(".site-nav");
     const onChromeScroll = () => chrome.classList.toggle("is-docked", window.scrollY > 24);
     onChromeScroll();
     window.addEventListener("scroll", onChromeScroll, { passive: true });
-    return () => { window.clearTimeout(timer); window.removeEventListener("scroll", onChromeScroll); };
+    return () => { cancelled = true; window.removeEventListener("scroll", onChromeScroll); };
   }, []);
 
+  // All scroll machinery is built while the preloader still covers the page, so
+  // its ~400ms setup never lands on the curtain's exit frames. Scrolling stays
+  // locked until the reveal; the intro plays on reveal (see the effect below).
   useEffect(() => {
-    if (!loaded) return undefined;
     if (reduced) return undefined;
 
     const contextCleanupsGlobal = [];
     const contextCleanups = [];
     const isTouch = window.matchMedia("(pointer: coarse)").matches;
     const lenis = new Lenis({
-      lerp: .12, smoothWheel: true, wheelMultiplier: .95, anchors: false,
+      lerp: .14, smoothWheel: true, wheelMultiplier: 1, anchors: false,
       virtualScroll: (input) => {
         if (input.event.ctrlKey) return;
         if (settling) { lenis.scrollTo(lenis.actualScroll, { immediate: true }); settling = false; settleCooldown = 0; }
@@ -335,6 +373,8 @@ function App() {
         }
       },
     });
+    lenisRef.current = lenis;
+    if (!revealed.current) lenis.stop();
     lenis.on("scroll", ScrollTrigger.update);
     const onTick = (time) => lenis.raf(time * 1000);
     gsap.ticker.add(onTick);
@@ -398,7 +438,7 @@ function App() {
     const ambientVideoObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => entry.isIntersecting ? visibleAmbientVideos.add(entry.target) : visibleAmbientVideos.delete(entry.target));
       syncAmbientPlayback();
-    }, { threshold: 0.08, rootMargin: "18% 0px" });
+    }, { threshold: 0.08 });
     ambientVideos.forEach((video) => ambientVideoObserver.observe(video));
     document.addEventListener("visibilitychange", syncAmbientPlayback);
     // Floating phones only animate while on screen and the tab is visible.
@@ -445,8 +485,8 @@ function App() {
         .from(".hero-actions", { y: 18, autoAlpha: 0, duration: 0.75 }, "-=0.6")
         // Reveal masks are transitional — release them so the title's glow can breathe free.
         .set(".hero-title .line", { clipPath: "none" });
-      if (internalArrival) intro.progress(1);
-      else intro.play();
+      introRef.current = intro;
+      if (revealed.current) intro.progress(1);
 
       // Top bar docking is scrubbed, not toggled: glass and lift track the first
       // 180px of scroll with a short inertial lag, identical in both directions.
@@ -536,7 +576,7 @@ function App() {
 
       // Scroll arrest: the pinned system section eases out over its final 8% instead of hard-releasing.
       // Pin budget scales with the chapter count; phones hold for less distance per chapter.
-      const SYSTEM_HOLD_END = `+=${chapters.length * (isTouch ? 52 : 80)}%`;
+      const SYSTEM_HOLD_END = `+=${chapters.length * (isTouch ? 46 : 66)}%`;
       let buildMediaPlaying = false;
       const setBuildMediaPlayback = (shouldPlay) => {
         if (shouldPlay === buildMediaPlaying) return;
@@ -757,8 +797,10 @@ function App() {
       gsap.ticker.remove(onTick);
       contextCleanupsGlobal.forEach((cleanup) => cleanup());
       lenis.destroy();
+      lenisRef.current = null;
+      introRef.current = null;
     };
-  }, [loaded, reduced]);
+  }, [reduced]);
 
   useEffect(() => {
     const anchor = readingAnchor.current;
@@ -781,7 +823,7 @@ function App() {
   }, [reduced]);
 
   return (
-    <main ref={root} className={`site${loaded ? " is-ready" : ""}${reduced ? " is-motion-off" : ""}`}>
+    <main ref={root} className={`site${revealed.current ? " is-ready" : ""}${reduced ? " is-motion-off" : ""}`}>
       <a className="skip-link" href="#system">Skip to content</a>
       <div className="scroll-progress" aria-hidden="true" />
       {/* Outside the hero's stacking context so the docked state layers above every section. */}
@@ -790,10 +832,10 @@ function App() {
         <div className="nav-links"><a href="#system">The system</a><a href="#app">The app</a></div>
         <a className="nav-cta" href="#system">Explore Shft <Arrow /></a>
       </nav>
-      <div className="preloader" aria-hidden={loaded}>
+      <div className="preloader" aria-hidden={revealed.current}>
         <div className="preloader-veil" aria-hidden="true" />
         <div className="preloader-curtain" aria-hidden="true" />
-        <div className="preloader-mark"><img src="/media/shft-preloader-icon.png" alt="" /></div>
+        <div className="preloader-mark"><img src="/media/shft-preloader-icon.webp" alt="" width="94" height="94" /></div>
         <span>Preparing your next session</span>
       </div>
       <section className="hero" id="top" aria-label="Shft introduction">
