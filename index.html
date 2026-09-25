@@ -44,7 +44,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Saira+Condensed:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
 
     <!-- Performance hints -->
+    <link rel="preload" as="image" href="/media/shft-preloader-icon.webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/media/hero-motion-poster.jpg" fetchpriority="high" />
+    <!-- Boot mark: paints on the first frame, before any JavaScript. The React
+         preloader mounts beneath it at the identical position, then takes over. -->
+    <style>
+      #boot { position: fixed; inset: 0; z-index: 101; display: grid; place-items: center; background: #070907; transition: opacity .4s ease; }
+      #boot img { display: block; width: 94px; height: 94px; animation: boot-in 1.05s cubic-bezier(.16, 1, .3, 1) both; }
+      #boot.is-gone { opacity: 0; }
+      @keyframes boot-in { from { opacity: 0; transform: scale(.72) rotate(-8deg); } to { opacity: 1; transform: none; } }
+      .is-internal #boot img { animation: none; }
+      @media (prefers-reduced-motion: reduce) { #boot img { animation: none; } #boot { transition: none; } }
+    </style>
+    <script>
+      // Same-site arrivals (e.g. back from /support/) skip the brand entrance.
+      try { if (document.referrer && new URL(document.referrer).origin === location.origin) document.documentElement.classList.add("is-internal"); } catch {}
+    </script>
 
     <script type="application/ld+json">
     {
@@ -83,9 +98,10 @@
     }
     </script>
   <link rel="stylesheet" href="/page-transitions.css">
-  <script type="module" blocking="render" src="/src/main.jsx"></script>
+  <script type="module" src="/src/main.jsx"></script>
   </head>
   <body>
+    <div id="boot" aria-hidden="true"><img src="/media/shft-preloader-icon.webp" alt="" width="94" height="94" /></div>
     <div id="root"></div>
     <noscript><p style="padding:48px 24px;color:#ecf1ee;font:16px/1.6 Manrope,sans-serif">Shft needs JavaScript for its interactive tour. <a href="/support/" style="color:#a6e4af">Support</a> · <a href="/privacy/" style="color:#a6e4af">Privacy</a></p></noscript>
   </body>
