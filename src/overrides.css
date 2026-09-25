@@ -1961,12 +1961,15 @@ section[id] { scroll-margin-top: 80px; }
 
 /* "Coming soon" reads as a live status, not a disabled button. */
 .coming-soon-status { gap: 10px; }
-.coming-soon-status::before {
-  content: ""; width: 7px; height: 7px; border-radius: 50%;
-  background: #a6e4af; box-shadow: 0 0 0 0 rgba(166, 228, 175, .55);
+/* Pulse ring animates transform + opacity only (no per-frame repaint). */
+.coming-soon-status { position: relative; }
+.coming-soon-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #a6e4af; }
+.coming-soon-status::after {
+  content: ""; position: absolute; left: 0; top: 50%; width: 7px; height: 7px; margin-top: -3.5px;
+  border-radius: 50%; background: rgba(166, 228, 175, .55); pointer-events: none;
   animation: status-pulse 2.4s var(--ease-out) infinite;
 }
-@keyframes status-pulse { 70%, 100% { box-shadow: 0 0 0 9px rgba(166, 228, 175, 0); } }
+@keyframes status-pulse { from { transform: scale(1); opacity: .9; } 70%, to { transform: scale(3.6); opacity: 0; } }
 
 /* Show up. Again. — the repetition now charges a glow behind the word. */
 .again-base { position: relative; }
@@ -1992,7 +1995,7 @@ section[id] { scroll-margin-top: 80px; }
 @media (max-width: 820px) { .pricing-section { min-height: 0; padding-block: 96px; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .coming-soon-status::before { animation: none; }
+  .coming-soon-status::after { animation: none; opacity: 0; }
   .skip-link, .nav-links a::after { transition: none; }
 }
 /* The section label clears the floating nav; on phones the chapter index already names the step. */
@@ -2017,3 +2020,7 @@ section[id] { scroll-margin-top: 80px; }
 .site .hero-scroll { left: var(--gutter-l); }
 .site .system-label { left: var(--gutter-l); }
 @media (max-width: 820px) { .site .hero-content { width: 100%; } }
+
+/* Particle depth layers: each plane is one composited layer; dots inside are plain paint. */
+.community-particle-layer { position: absolute; inset: 0; will-change: transform, opacity; }
+.community-particles .community-particle-layer i { opacity: 1; will-change: auto; animation: none; }
