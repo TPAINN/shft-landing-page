@@ -71,8 +71,6 @@ const communityParticles = Array.from({ length: 56 }, (_, index) => ({
   y: `${(index * 37 + 11) % 94 + 3}%`,
   size: `${index % 7 === 0 ? 6 : index % 3 === 0 ? 3.5 : 2}px`,
   trail: `${24 + index % 5 * 9}px`,
-  delay: `${-(index % 11) * 0.78}s`,
-  duration: `${11 + (index % 8) * 1.35}s`,
 }));
 
 const communityRails = [
@@ -145,16 +143,20 @@ function BuildMediaGrid({ reduced }) {
   </div>;
 }
 
+// Three depth layers move as whole planes: 3 composited layers and 3 scroll
+// tweens instead of one per particle, with the same parallax spread.
+const PARTICLE_LAYERS = 3;
+
 function CommunityParticles() {
   return <div className="community-particles" aria-hidden="true">
-    {communityParticles.map((particle, index) => <i key={index} style={{
-      "--particle-x": particle.x,
-      "--particle-y": particle.y,
-      "--particle-size": particle.size,
-      "--particle-trail": particle.trail,
-      "--particle-delay": particle.delay,
-      "--particle-duration": particle.duration,
-    }} />)}
+    {Array.from({ length: PARTICLE_LAYERS }, (_, layer) => <div className="community-particle-layer" key={layer}>
+      {communityParticles.filter((_, index) => index % PARTICLE_LAYERS === layer).map((particle) => <i key={particle.x + particle.y} style={{
+        "--particle-x": particle.x,
+        "--particle-y": particle.y,
+        "--particle-size": particle.size,
+        "--particle-trail": particle.trail,
+      }} />)}
+    </div>)}
   </div>;
 }
 
@@ -399,14 +401,20 @@ function App() {
     }, { threshold: 0.08, rootMargin: "18% 0px" });
     ambientVideos.forEach((video) => ambientVideoObserver.observe(video));
     document.addEventListener("visibilitychange", syncAmbientPlayback);
-    const finalPhone = root.current.querySelector(".final-phone-pixel");
-    let phoneVisible = false;
-    const syncPhoneMotion = () => { finalPhone.style.animationPlayState = phoneVisible && !document.hidden ? "running" : "paused"; };
-    const phoneObserver = new IntersectionObserver(([entry]) => { phoneVisible = entry.isIntersecting; syncPhoneMotion(); });
-    phoneObserver.observe(finalPhone);
+    // Floating phones only animate while on screen and the tab is visible.
+    const floatingPhones = [...root.current.querySelectorAll(".final-phone-pixel, .phone-mockup")];
+    const visiblePhones = new Set();
+    const syncPhoneMotion = () => floatingPhones.forEach((phone) => {
+      phone.style.animationPlayState = visiblePhones.has(phone) && !document.hidden ? "running" : "paused";
+    });
+    const phoneObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => entry.isIntersecting ? visiblePhones.add(entry.target) : visiblePhones.delete(entry.target));
+      syncPhoneMotion();
+    });
+    floatingPhones.forEach((phone) => phoneObserver.observe(phone));
     syncPhoneMotion();
     document.addEventListener("visibilitychange", syncPhoneMotion);
-    contextCleanupsGlobal.push(() => { phoneObserver.disconnect(); document.removeEventListener("visibilitychange", syncPhoneMotion); finalPhone.style.animationPlayState = ""; });
+    contextCleanupsGlobal.push(() => { phoneObserver.disconnect(); document.removeEventListener("visibilitychange", syncPhoneMotion); floatingPhones.forEach((phone) => { phone.style.animationPlayState = ""; }); });
 
     // Early-start: the manifesto video begins decoding+playing on the FIRST scroll
     // away from the hero, so it's already in motion when the section arrives.
@@ -466,7 +474,7 @@ function App() {
       gsap.to(".hero-title", {
         yPercent: -10,
         ease: "none",
-        scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: 1 },
+        scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: .5 },
       });
 
       // Opacity only (not autoAlpha): hidden links stay reachable by keyboard, and
@@ -538,7 +546,7 @@ function App() {
       const systemStory = gsap.timeline({
         scrollTrigger: {
           trigger: ".training-system", start: "top top", end: SYSTEM_HOLD_END, pin: true,
-          scrub: 0.9, anticipatePin: 1,
+          scrub: 0.5, anticipatePin: 1,
           onUpdate: (self) => setBuildMediaPlayback(self.progress < 0.9),
           onLeave: () => setBuildMediaPlayback(false),
           onLeaveBack: () => setBuildMediaPlayback(false),
@@ -651,7 +659,7 @@ function App() {
       }
       // ───────────────────────────────────────────────────────────────────────
 
-      const communityScroll = { trigger: ".community-scene", start: "top top", end: "bottom bottom", scrub: .9, invalidateOnRefresh: true };
+      const communityScroll = { trigger: ".community-scene", start: "top top", end: "bottom bottom", scrub: .5, invalidateOnRefresh: true };
       gsap.fromTo(".community-depth",
         { yPercent: 6, scale: 1.04 },
         { yPercent: -12, scale: 1.14, ease: "none", scrollTrigger: { ...communityScroll } },
@@ -660,16 +668,16 @@ function App() {
         { yPercent: 8 },
         { yPercent: -10, ease: "none", scrollTrigger: { ...communityScroll } },
       );
-      gsap.fromTo(".community-particles i",
-        { y: (index) => 12 + index % 5 * 8, opacity: .25 },
-        { y: (index) => -30 - index % 7 * 12, x: (index) => (index % 2 ? 1 : -1) * (8 + index % 4 * 7), opacity: .65, ease: "none", scrollTrigger: { ...communityScroll } },
+      gsap.fromTo(".community-particle-layer",
+        { y: (depth) => 12 + depth * 14, opacity: .25 },
+        { y: (depth) => -30 - depth * 34, x: (depth) => (depth - 1) * 16, opacity: .65, ease: "none", scrollTrigger: { ...communityScroll } },
       );
       gsap.timeline({ scrollTrigger: { ...communityScroll } })
         .set(".community-handoff", { opacity: 0 }, 0)
         .to(".community-handoff", { opacity: 1, y: -24, ease: "sine.inOut", duration: .26 }, .74);
       gsap.fromTo(".pricing-atmosphere", { y: 64, opacity: .35 }, {
         y: -48, opacity: .85, ease: "none",
-        scrollTrigger: { trigger: ".pricing-section", start: "top bottom", end: "top 15%", scrub: .9 },
+        scrollTrigger: { trigger: ".pricing-section", start: "top bottom", end: "top 15%", scrub: .5 },
       });
       gsap.to(".hero-content", { autoAlpha: 0, y: -24, ease: "none", scrollTrigger: { trigger: ".hero", start: "bottom 60%", end: "bottom 10%", scrub: .8 } });
       const communityTracks = gsap.utils.toArray(".community-stream-track");
@@ -724,8 +732,12 @@ function App() {
     }, root);
 
     // Phone screens wait off-canvas until their push, where lazy loading would
-    // never fetch them in time. Warm them once the hero has finished loading.
-    const warmScreens = () => root.current?.querySelectorAll(".phone-screen").forEach((image) => { image.loading = "eager"; });
+    // never fetch them in time. After the hero loads, fetch and pre-decode them
+    // off the main thread so a push never stalls a frame on image decode.
+    const warmScreens = () => root.current?.querySelectorAll(".phone-screen").forEach((image) => {
+      image.loading = "eager";
+      image.decode().catch(() => {});
+    });
     if (document.readyState === "complete") warmScreens();
     else window.addEventListener("load", warmScreens, { once: true });
     contextCleanupsGlobal.push(() => window.removeEventListener("load", warmScreens));
@@ -879,10 +891,14 @@ function App() {
       </section>
 
       <section className="final-cta" aria-label="Explore Shft">
+        {/* Sized to what each screen actually shows: phones get an exact crop of the
+            visible slice, desktops a width-matched render, never the 14 MP master. */}
         <picture className="final-artwork" aria-hidden="true">
-          <source srcSet="/media/final-shft-background-lossless.avif" type="image/avif" />
-          <source srcSet="/media/final-shft-background.webp" type="image/webp" />
-          <img src="/media/final-shft-background.webp" alt="" loading="lazy" decoding="async" />
+          <source media="(max-width: 820px)" srcSet="/media/final-bg-portrait.avif" type="image/avif" />
+          <source media="(max-width: 820px)" srcSet="/media/final-bg-portrait.webp" type="image/webp" />
+          <source srcSet="/media/final-bg-2304.avif 2304w, /media/final-bg-3456.avif 3456w" sizes="(min-aspect-ratio: 16/9) 100vw, 192vh" type="image/avif" />
+          <source srcSet="/media/final-bg-2304.webp 2304w, /media/final-bg-3456.webp 3456w" sizes="(min-aspect-ratio: 16/9) 100vw, 192vh" type="image/webp" />
+          <img src="/media/final-bg-2304.webp" alt="" loading="lazy" decoding="async" />
         </picture>
         <div className="final-glow" />
         <div className="final-copy">
