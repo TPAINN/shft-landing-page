@@ -12,7 +12,7 @@ const chapters = [
     name: "Build",
     title: "Build a plan you trust.",
     copy: "Choose your split. Shape the week before your first set.",
-    screenImage: "/media/shft-ios-plan-builder.png",
+    screenImage: "/media/shft-ios-plan-builder.webp",
     screenAlt: "Shft Plan Builder screen with a Monday Chest workout",
   },
   {
@@ -20,7 +20,7 @@ const chapters = [
     name: "Learn",
     title: "Know every lift.",
     copy: "Illustrated technique, the muscles it hits, and cues you can use mid-set.",
-    screenImage: "/media/shft-ios-exercise-detail.png",
+    screenImage: "/media/shft-ios-exercise-detail.webp",
     screenAlt: "Shft exercise detail screen for the barbell bench press",
   },
   {
@@ -28,7 +28,7 @@ const chapters = [
     name: "Lift",
     title: "Stay with the work.",
     copy: "Log sets, reps, and rest without leaving the floor.",
-    screenImage: "/media/shft-ios-active-session.png",
+    screenImage: "/media/shft-ios-active-session.webp",
     screenAlt: "Shft active workout screen",
   },
   {
@@ -36,7 +36,7 @@ const chapters = [
     name: "Review",
     title: "See every set count.",
     copy: "Each session ends with your top sets, first-time lifts, and total volume.",
-    screenImage: "/media/shft-ios-session-summary.png",
+    screenImage: "/media/shft-ios-session-summary.webp",
     screenAlt: "Shft session summary screen",
   },
   {
@@ -44,7 +44,7 @@ const chapters = [
     name: "Recover",
     title: "Train what is ready.",
     copy: "Estimates from your logged sessions show which muscles are fresh and which need time.",
-    screenImage: "/media/shft-ios-recovery.png",
+    screenImage: "/media/shft-ios-recovery.webp",
     screenAlt: "Shft recovery screen with a muscle fatigue map",
   },
   {
@@ -52,7 +52,7 @@ const chapters = [
     name: "Progress",
     title: "See what to do next.",
     copy: "When you hit the top of your range, Shft gives you the next cue.",
-    screenImage: "/media/shft-ios-progress.png",
+    screenImage: "/media/shft-ios-progress.webp",
     screenAlt: "Shft progress screen",
   },
 ];
@@ -60,10 +60,10 @@ const chapters = [
 const buildGridMedia = [
   { type: "video", src: "/media/build-reset.mp4" },
   { type: "video", src: "/media/build-redplates.mp4" },
-  { type: "image", src: "/media/build-pulldown.jpeg" },
+  { type: "image", src: "/media/build-pulldown.webp" },
   { type: "video", src: "/media/build-squat.mp4" },
-  { type: "image", src: "/media/build-barbell.jpeg" },
-  { type: "image", src: "/media/ambient-lifter.jpeg" },
+  { type: "image", src: "/media/build-barbell.webp" },
+  { type: "image", src: "/media/ambient-lifter.webp" },
 ];
 
 const communityParticles = Array.from({ length: 56 }, (_, index) => ({
@@ -126,7 +126,7 @@ function HeroMotion({ reduced }) {
     };
   }, [reduced]);
 
-  return <div className="hero-motion" aria-hidden="true"><video ref={video} autoPlay={!reduced} muted loop playsInline preload="auto" fetchPriority="high" poster="/media/hero-motion-poster.jpg"><source src="/media/hero-motion-mobile-pingpong.mp4" media="(max-width: 820px)" type="video/mp4" /><source src="/media/hero-motion-desktop-pingpong.mp4" type="video/mp4" /></video></div>;
+  return <div className="hero-motion" aria-hidden="true"><video ref={video} autoPlay={!reduced} muted loop playsInline preload="auto" fetchPriority="high" poster="/media/hero-motion-poster.webp"><source src="/media/hero-motion-mobile-pingpong.mp4" media="(max-width: 820px)" type="video/mp4" /><source src="/media/hero-motion-desktop-pingpong.mp4" type="video/mp4" /></video></div>;
 }
 
 function BuildMediaGrid({ reduced }) {
@@ -137,7 +137,7 @@ function BuildMediaGrid({ reduced }) {
   return <div className="build-media-grid" aria-hidden="true">
     {tiles.map((asset) => <div className="build-media-tile" key={asset.src}>
       {asset.type === "video"
-        ? <video muted loop playsInline preload="none" poster={asset.src.replace(".mp4", ".jpg")}>
+        ? <video muted loop playsInline preload="none" poster={asset.src.replace(".mp4", ".webp")}>
           {/* Phones decode a 480px/24fps cut: the dimmed tiles never need more. */}
           <source src={asset.src.replace(".mp4", "-mobile.mp4")} media="(max-width: 820px)" type="video/mp4" />
           <source src={asset.src} type="video/mp4" />
@@ -168,7 +168,7 @@ function CommunityClip({ src, active, showPoster }) {
   // Posters load once the scene is near (or at once in the static reduced-motion
   // edition, where the posters are the content) — not with the hero.
   return <div className="community-stream-tile">
-    <video muted loop playsInline preload="none" poster={showPoster ? src.replace(/(?:-compact)?\.mp4$/, ".jpg") : undefined}>
+    <video muted loop playsInline preload="none" poster={showPoster ? src.replace(/(?:-compact)?\.mp4$/, ".webp") : undefined}>
       {active && <source src={src} type="video/mp4" />}
     </video>
   </div>;
@@ -333,7 +333,7 @@ function App() {
     });
     // Leave when the first frame is genuinely ready (fonts + hero poster),
     // never before a short brand beat, and never later than a hard cap.
-    const ready = Promise.all([wait(reduced ? 80 : 700), handOff, document.fonts.ready, imageReady("/media/hero-motion-poster.jpg")]);
+    const ready = Promise.all([wait(reduced ? 80 : 700), handOff, document.fonts.ready, imageReady("/media/hero-motion-poster.webp")]);
     Promise.race([ready, wait(reduced ? 400 : 3200)]).then(() => {
       if (cancelled) return;
       if (!internalArrival) boot?.remove();
@@ -495,12 +495,6 @@ function App() {
       gsap.fromTo(".site-nav", { "--dock": 0 }, {
         "--dock": 1, ease: "power1.inOut",
         scrollTrigger: { start: 0, end: 180, scrub: .5 },
-      });
-
-      // Reading progress: a hairline that fills with the page.
-      gsap.fromTo(".scroll-progress", { scaleX: 0 }, {
-        scaleX: 1, ease: "none",
-        scrollTrigger: { start: 0, end: "max", scrub: .25 },
       });
 
       // The nav marks the section being read.
@@ -831,7 +825,6 @@ function App() {
   return (
     <main ref={root} className={`site${revealed.current ? " is-ready" : ""}${reduced ? " is-motion-off" : ""}`}>
       <a className="skip-link" href="#system">Skip to content</a>
-      <div className="scroll-progress" aria-hidden="true" />
       {/* Outside the hero's stacking context so the docked state layers above every section. */}
       <nav className="site-nav" aria-label="Main navigation">
         <a className="brand" href="#top" aria-label="Shft — back to top"><span className="brand-wordmark" role="img" aria-label="Shft" /></a>
@@ -862,7 +855,7 @@ function App() {
 
       <section className="manifesto" id="system">
         <div className="manifesto-stage">
-          <video className="manifesto-video" muted loop playsInline preload="metadata" poster="/media/second-section-video-poster.jpg"><source src="/media/second-section-video-final.mp4" type="video/mp4" /></video>
+          <video className="manifesto-video" muted loop playsInline preload="none" poster="/media/second-section-video-poster.webp"><source src="/media/second-section-video-final.mp4" type="video/mp4" /></video>
           <div className="manifesto-video-wash" aria-hidden="true" />
           <p className="section-kicker" data-reveal>Built for your next session.</p>
           <div className="manifesto-grid">
@@ -955,7 +948,7 @@ function App() {
           <div className="final-actions" data-reveal><a className="text-link" href="#app">Explore the app</a><a className="text-link" href="/support/">Ask a question</a></div>
         </div>
         <div className="final-phones" aria-hidden="true">
-          <img className="final-phone-pixel" src="/media/shft-pixel9-exercises-aligned.png" alt="" loading="lazy" decoding="async" width="1254" height="1254" />
+          <img className="final-phone-pixel" src="/media/shft-pixel9-exercises-aligned.webp" alt="" loading="lazy" decoding="async" width="1254" height="1254" />
         </div>
       </section>
 
@@ -984,8 +977,8 @@ function App() {
           <span>Independently built by Apostolos Peiniris.</span>
         </div>
         <div className="footer-actions">
-          <a className="ap-signature" href="https://apostolos-peiniris.vercel.app/" target="_blank" rel="noreferrer"><img src="/media/ap-signature.png" alt="Apostolos Peiniris" loading="lazy" decoding="async" /></a>
-          <a className="footer-top" href="#top" aria-label="Back to top"><img src="/media/tpainn-github-avatar.png" alt="" width="160" height="160" loading="lazy" decoding="async" /></a>
+          <a className="ap-signature" href="https://apostolos-peiniris.vercel.app/" target="_blank" rel="noreferrer"><img src="/media/ap-signature.webp" alt="Apostolos Peiniris" loading="lazy" decoding="async" /></a>
+          <a className="footer-top" href="#top" aria-label="Back to top"><img src="/media/tpainn-github-avatar.webp" alt="" width="160" height="160" loading="lazy" decoding="async" /></a>
         </div>
       </footer>
     </main>

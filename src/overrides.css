@@ -1314,15 +1314,6 @@ section[id] { scroll-margin-top: 80px; }
 }
 .skip-link:focus-visible { translate: 0 0; }
 
-/* Reading progress hairline. */
-.scroll-progress {
-  position: fixed; inset: 0 0 auto; z-index: 60; height: 2px;
-  background: linear-gradient(90deg, rgba(166, 228, 175, .35), #a6e4af);
-  box-shadow: 0 0 12px rgba(166, 228, 175, .45);
-  transform: scaleX(0); transform-origin: 0 50%; pointer-events: none;
-}
-.site.is-motion-off .scroll-progress { display: none; }
-
 /* Navigation: fixed from the first frame, so hero → sections is one continuous
    element. --dock (0 → 1) is scrubbed by scroll position with inertia, so the
    frosted glass materialises and the bar lifts in lockstep with the page —
