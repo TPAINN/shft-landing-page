@@ -137,7 +137,11 @@ function BuildMediaGrid({ reduced }) {
   return <div className="build-media-grid" aria-hidden="true">
     {tiles.map((asset) => <div className="build-media-tile" key={asset.src}>
       {asset.type === "video"
-        ? <video muted loop playsInline preload="none" poster={asset.src.replace(".mp4", ".jpg")}><source src={asset.src} type="video/mp4" /></video>
+        ? <video muted loop playsInline preload="none" poster={asset.src.replace(".mp4", ".jpg")}>
+          {/* Phones decode a 480px/24fps cut: the dimmed tiles never need more. */}
+          <source src={asset.src.replace(".mp4", "-mobile.mp4")} media="(max-width: 820px)" type="video/mp4" />
+          <source src={asset.src} type="video/mp4" />
+        </video>
         : <img src={asset.src} alt="" loading="lazy" decoding="async" />}
     </div>)}
   </div>;
@@ -265,8 +269,7 @@ function App() {
   // The reveal is imperative, not state: re-rendering this whole tree on the
   // curtain's first frame is exactly what made the exit stutter.
   const revealed = useRef(internalArrival);
-  const [reducedPreference, setReducedPreference] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  const reduced = reducedPreference;
+  const [reduced, setReduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const root = useRef(null);
   const readingAnchor = useRef(null);
   const introRef = useRef(null);
@@ -306,7 +309,7 @@ function App() {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const onPreferenceChange = (event) => {
       rememberReadingPosition();
-      setReducedPreference(event.matches);
+      setReduced(event.matches);
     };
     preference.addEventListener("change", onPreferenceChange);
     return () => preference.removeEventListener("change", onPreferenceChange);
@@ -473,7 +476,6 @@ function App() {
     contextCleanupsGlobal.push(() => window.removeEventListener("scroll", onFirstScrollEarlyStart));
 
     const context = gsap.context(() => {
-      const splitHeadingLines = (element) => SplitText.create(element, { type: "lines", linesClass: "split-line" });
 
       const intro = gsap.timeline({ paused: true, delay: 0.32, defaults: { ease: "power4.out" } });
       intro
@@ -531,16 +533,20 @@ function App() {
         });
       });
 
-      // Masked line reveals on every section heading that isn't already covered
+      // Masked line reveals on section headings. autoSplit re-splits once web
+      // fonts load and whenever the width changes, so line breaks always match
+      // the real font; returning the tween lets SplitText rebuild it in place.
       gsap.utils.toArray(".manifesto h2, .pricing-section h2, .final-cta h2").forEach((heading) => {
-        const split = splitHeadingLines(heading);
-        gsap.fromTo(split.lines, { yPercent: 58, clipPath: "inset(-8% 0 100% 0)" } , {
-          yPercent: 0,
-          clipPath: "inset(-8% 0 -14% 0)",
-          duration: 1.05,
-          ease: "power4.out",
-          stagger: 0.09,
-          scrollTrigger: { trigger: heading, endTrigger: heading.closest("section"), start: "top 85%", end: "bottom top", toggleActions: "play reverse play reverse" },
+        SplitText.create(heading, {
+          type: "lines", linesClass: "split-line", autoSplit: true,
+          onSplit: (self) => gsap.fromTo(self.lines, { yPercent: 58, clipPath: "inset(-8% 0 100% 0)" }, {
+            yPercent: 0,
+            clipPath: "inset(-8% 0 -14% 0)",
+            duration: 1.05,
+            ease: "power4.out",
+            stagger: 0.09,
+            scrollTrigger: { trigger: heading, endTrigger: heading.closest("section"), start: "top 85%", end: "bottom top", toggleActions: "play reverse play reverse" },
+          }),
         });
       });
 
@@ -891,7 +897,6 @@ function App() {
             <div className="phone-island" aria-hidden="true" />
           </div>
         </div>
-        <div className="chapter-nav" aria-hidden="true" />
       </section>
 
       <section className="community-scene" aria-label="The Shft training community">

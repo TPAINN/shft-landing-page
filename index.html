@@ -38,10 +38,11 @@
     <link rel="icon" type="image/png" sizes="64x64" href="/media/shft-favicon-64.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/media/shft-apple-touch.png" />
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Saira+Condensed:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+    <!-- Fonts: self-hosted, preloaded (first-paint faces only) -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/manrope-bcbadccc-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/saira-condensed-ee643d1b-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/saira-condensed-c2c07417-latin.woff2" crossorigin />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
 
     <!-- Performance hints -->
     <link rel="preload" as="image" href="/media/shft-preloader-icon.webp" fetchpriority="high" />

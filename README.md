@@ -128,6 +128,9 @@ this build holds itself to — and checks automatically.
 
 **Delivery**
 - Static Vite build on Vercel with long-lived caching for hashed assets.
+- Self-hosted, preloaded fonts: zero third-party requests, zero layout shift (CLS 0.00).
+- Media sized to what each screen shows: phones get cropped and lighter encodes, never desktop masters.
+- Lighthouse 100 across Accessibility, Best Practices, SEO and Agentic Browsing.
 - Security headers: HSTS, `nosniff`, frame denial, strict referrer and permissions policies.
 - Canonical URLs, Open Graph, structured data and a sitemap for every page.
 
