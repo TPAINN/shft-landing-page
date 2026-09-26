@@ -8,11 +8,11 @@ const motionOnly = process.argv.includes('--motion-only');
 fs.mkdirSync(output, { recursive: true });
 const pause = (page, ms = 1000) => page.waitForTimeout(ms);
 const source = fs.readFileSync(path.join(__dirname, '../src/App.jsx'), 'utf8');
-const media = [...source.matchAll(/["'](\/media\/[^"']+\.(?:mp4|png|jpg|jpeg))["']/g)].map(match => match[1]);
+const media = [...source.matchAll(/["'](\/media\/[^"']+\.(?:mp4|png|jpg|jpeg|webp|avif))["']/g)].map(match => match[1]);
 const communityClips = media.filter(file => file.endsWith('-compact.mp4'));
 assert.equal(communityClips.length, 20);
 assert.equal(new Set(communityClips).size, 20, 'no repeated reel source');
-for (const file of [...media, ...communityClips.map(file => file.replace('-compact.mp4', '.jpg'))]) {
+for (const file of [...media, ...communityClips.map(file => file.replace('-compact.mp4', '.webp'))]) {
   assert.ok(fs.existsSync(path.join(__dirname, '../public', file)), `real media file: ${file}`);
 }
 const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
