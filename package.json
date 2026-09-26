@@ -8,7 +8,6 @@
     "build": "vite build",
     "preview": "vite preview",
     "verify": "node scripts/verify-frontend.cjs",
-    "verify:immersion": "node scripts/verify-immersion.cjs",
     "profile:scroll": "node scripts/profile-scroll.cjs"
   },
   "dependencies": {
