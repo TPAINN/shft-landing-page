@@ -737,38 +737,37 @@ function App() {
       const communityStory = gsap.timeline({
         scrollTrigger: { ...communityScroll },
       });
-      // The heading enters with the arriving stage, before its sticky story
-      // starts. Its parent owns this reveal; the later story owns the lines.
-      gsap.fromTo(".community-reveal",
-        { yPercent: 18, autoAlpha: 0 },
-        { yPercent: 0, autoAlpha: 1, ease: "power2.out", scrollTrigger: {
-          trigger: ".community-scene", start: "top 85%", end: "top 25%", scrub: .2,
+      // Act 1 - the two lines rise out of a mask, one after the other, as the stage arrives.
+      gsap.fromTo(".community-kicker", { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, ease: "power2.out", scrollTrigger: {
+        trigger: ".community-scene", start: "top 80%", end: "top 45%", scrub: .3,
+      } });
+      gsap.fromTo(".community-reveal .reveal-inner",
+        { yPercent: 55, autoAlpha: 0, clipPath: "inset(0% 0% 100% 0%)" },
+        { yPercent: 0, autoAlpha: 1, clipPath: "inset(0% 0% 0% 0%)", stagger: .45, ease: "power3.out", scrollTrigger: {
+          trigger: ".community-scene", start: "top 72%", end: "top 12%", scrub: .35,
         } },
       );
-      const communityEchoes = gsap.utils.toArray(".community-echoes span");
-      communityEchoes.forEach((echo, index) => {
-        const at = 1.55 + index * .95;
-        communityStory.fromTo(echo,
-          { y: -30, scale: .96, autoAlpha: 0 },
-          { y: 0, scale: 1, autoAlpha: .8, duration: .9, ease: "expo.out" },
-          at,
-        );
-        if (index > 0) communityStory.to(communityEchoes[index - 1], { autoAlpha: .38, scale: .985, duration: .6, ease: "none" }, at + .46);
-        // Each repetition charges the glow behind "Again." a little more.
-        communityStory.to(".again-halo", { opacity: .2 + index * .16, scale: 1 + index * .05, duration: .7, ease: "power2.out" }, at);
-        communityStory.fromTo(".again-base em", { scale: 1 }, { scale: 1.025, duration: .22, ease: "power2.out", yoyo: true, repeat: 1 }, at);
+      gsap.fromTo(".again-reps i", { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, stagger: .06, ease: "power2.out", scrollTrigger: {
+        trigger: ".community-scene", start: "top 30%", end: "top 5%", scrub: .3,
+      } });
+      // Act 2 - five reps. Each one ticks a set dot, pulses the word, and sends one ripple
+      // out of it; the glow behind "Again." charges a little more every time. Nothing moves
+      // off-centre, so no line ever slides under the header.
+      const echoes = gsap.utils.toArray(".again-echo");
+      const reps = gsap.utils.toArray(".again-reps i");
+      reps.forEach((dot, index) => {
+        const at = 1.3 + index * .95;
+        communityStory
+          .fromTo(dot, { scale: .55, backgroundColor: "rgba(166, 228, 175, 0)" }, { scale: 1, backgroundColor: "rgba(166, 228, 175, 1)", duration: .3, ease: "back.out(2.2)" }, at)
+          .fromTo(".again-base em", { scale: 1 }, { scale: 1.035, duration: .2, ease: "power2.out", yoyo: true, repeat: 1 }, at)
+          .fromTo(echoes[index], { scale: 1, autoAlpha: .6 }, { scale: 1.42 + index * .06, autoAlpha: 0, duration: 1.15, ease: "power2.out", immediateRender: false }, at)
+          .to(".again-halo", { opacity: .22 + index * .16, scale: 1 + index * .06, duration: .7, ease: "power2.out" }, at);
       });
       communityStory
-        // Act 2 — high-end exit: the whole block dollies up-and-past the viewer with a
-        // whisper of scale (camera push), kicker dissolves first, echoes cascade behind.
-        .to(".community-kicker", { y: -22, autoAlpha: 0, ease: "power1.in", duration: .55 }, 1.42)
-        .to(".show-up-line", { y: -96, scale: .94, autoAlpha: .72, transformOrigin: "50% 0%", ease: "power1.inOut", duration: 1.6 }, 1.5)
-        .to(".community-copy", { y: () => -Math.max(0, document.querySelector(".community-echoes").offsetHeight - window.innerHeight * .38), ease: "power1.inOut", duration: 3.6 }, 2.75)
-        // Section hands off WHILE the last echo is still fresh — the copy block translates
-        // away mid-animation so scrolling out feels like continuous motion. The stage itself
-        // must stay put: it carries the streams' darkening wash, and moving it exposes an
-        // unwashed strip at the section boundary (reads as a hairline seam bug).
-        .to(".community-copy", { yPercent: -16, scale: 1.012, autoAlpha: 0, transformOrigin: "50% 100%", ease: "power1.in", duration: .9 }, 6.55);
+        .to(".show-up-line", { autoAlpha: .62, duration: 1.2, ease: "power1.inOut" }, 1.5)
+        // Act 3 - the whole block leaves together, a soft push back and fade, well before the
+        // section boundary. The stage stays put: it carries the streams' darkening wash.
+        .to(".community-copy", { y: -28, scale: .975, autoAlpha: 0, ease: "power1.in", duration: .9 }, 6.4);
     }, root);
 
     // Phone screens wait off-canvas until their push, where lazy loading would
@@ -900,8 +899,16 @@ function App() {
           <div className="community-handoff" aria-hidden="true" />
           <div className="community-copy">
             <p className="community-kicker">The hours you make yours</p>
-            <h2 className="community-reveal"><span className="reveal-line show-up-line">Show up.</span><span className="reveal-line again-base"><i className="again-halo" aria-hidden="true" /><em>Again.</em></span></h2>
-            <div className="community-echoes" aria-hidden="true"><span><i className="echo-a">A</i>gain.</span><span><i className="echo-a">A</i>gain.</span><span><i className="echo-a">A</i>gain.</span><span><i className="echo-a">A</i>gain.</span><span><i className="echo-a">A</i>gain.</span></div>
+            <h2 className="community-reveal">
+              <span className="reveal-line show-up-line"><span className="reveal-inner">Show up.</span></span>
+              <span className="reveal-line again-base">
+                <i className="again-halo" aria-hidden="true" />
+                {/* Each rep sends a ripple out of the word itself instead of stacking copies below it. */}
+                {[0, 1, 2, 3, 4].map((rep) => <span className="again-echo" aria-hidden="true" key={rep}>Again.</span>)}
+                <em className="reveal-inner">Again.</em>
+              </span>
+            </h2>
+            <div className="again-reps" aria-hidden="true">{[0, 1, 2, 3, 4].map((rep) => <i key={rep} />)}</div>
           </div>
         </div>
       </section>
