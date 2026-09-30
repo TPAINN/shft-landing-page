@@ -955,7 +955,7 @@ function App() {
           <div className="final-actions" data-reveal><a className="text-link" href="#app">Explore the app</a><a className="text-link" href="/support/">Ask a question</a></div>
         </div>
         <div className="final-phones" aria-hidden="true">
-          <img className="final-phone-pixel" src="/media/shft-pixel9-exercises-aligned.webp" alt="" loading="lazy" decoding="async" width="1254" height="1254" />
+          <img className="final-phone-pixel" src="/media/shft-pixel9-exercises-v2.webp" alt="" loading="lazy" decoding="async" width="1600" height="1600" />
         </div>
       </section>
 
