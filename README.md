@@ -4,7 +4,7 @@
 
 ### Start the habit.
 
-The landing page for **Shft** — the gym planner and workout tracker that turns
+The landing page for **Shft** - the gym planner and workout tracker that turns
 scattered sessions into a repeatable system.
 
 <br />
@@ -28,7 +28,7 @@ scattered sessions into a repeatable system.
 
 <br />
 
-<a href="https://shftapp.vercel.app"><img src=".github/assets/hero.jpg" alt="Shft landing page — Start the habit." width="100%" /></a>
+<a href="https://shftapp.vercel.app"><img src=".github/assets/hero.jpg" alt="Shft landing page - Start the habit." width="100%" /></a>
 
 </div>
 
@@ -41,7 +41,7 @@ part that actually fails: coming back. Build a plan you will repeat, log a sessi
 without a spreadsheet, and get a clear cue for next time the moment you reach the
 top of your rep range.
 
-This repository is the web front door for the app — a single, continuous,
+This repository is the web front door for the app - a single, continuous,
 cinematic scroll that tells that story in six beats.
 
 <br />
@@ -53,7 +53,7 @@ cinematic scroll that tells that story in six beats.
 ## The Shft system
 
 Six chapters, one pinned scene. Each step pushes the next real app screen onto the
-phone like native navigation — not a crossfade.
+phone like native navigation - not a crossfade.
 
 <img src=".github/assets/screens.jpg" alt="Six Shft app screens: plan builder, exercise detail, active session, session summary, recovery, progress" width="100%" />
 
@@ -68,13 +68,13 @@ phone like native navigation — not a crossfade.
 
 <br />
 
-<img src=".github/assets/system.jpg" alt="The Shft system — Know every lift." width="100%" />
+<img src=".github/assets/system.jpg" alt="The Shft system - Know every lift." width="100%" />
 
 <br />
 
 ## Built for every screen
 
-The same story, recomposed for the hand — not shrunk to fit it.
+The same story, recomposed for the hand - not shrunk to fit it.
 
 <img src=".github/assets/mobile.jpg" alt="Shft on mobile: hero, the system, and the final call to action" width="100%" />
 
@@ -83,16 +83,16 @@ The same story, recomposed for the hand — not shrunk to fit it.
 ## Simple pricing
 
 A free training core, always. Premium adds a clearer next step for **$2.99 / month**
-— planned launch pricing, not yet on sale.
+- planned launch pricing, not yet on sale.
 
-<img src=".github/assets/pricing.jpg" alt="Shft pricing — Free and Premium" width="100%" />
+<img src=".github/assets/pricing.jpg" alt="Shft pricing - Free and Premium" width="100%" />
 
 <br />
 
 ## Craft
 
 The details that make a page feel expensive are mostly invisible. These are the ones
-this build holds itself to — and checks automatically.
+this build holds itself to - and checks automatically.
 
 <table>
 <tr>
@@ -100,7 +100,7 @@ this build holds itself to — and checks automatically.
 
 **Motion**
 - One scroll engine: Lenis smoothing driving GSAP ScrollTrigger.
-- Scroll-scrubbed chapters with sequential copy hand-offs — zero overlapping frames, verified at 1% scroll steps.
+- Scroll-scrubbed chapters with sequential copy hand-offs - zero overlapping frames, verified at 1% scroll steps.
 - A top bar that materialises into frosted glass in lockstep with scroll, identical in both directions.
 - `prefers-reduced-motion` gets a complete static edition, not a broken animation.
 
@@ -179,7 +179,7 @@ scripts/           Playwright verification and profiling
 <br />
 <br />
 
-**Shft** — Plans. Sets. Progress.
+**Shft** - Plans. Sets. Progress.
 
 Independently designed and built by [Apostolos Peiniris](https://apostolos-peiniris.vercel.app/).
 <br />
