@@ -1,10 +1,7 @@
 node_modules/
 dist/
 media-archive/
-.freebuff/
 .impeccable/
-.hallmark/
-.claude/
 .vercel/
 scripts/__pycache__/
 *.log
@@ -24,3 +21,5 @@ scripts/__pycache__/
 service-account*.json
 *.kdbx
 .npmrc
+
+.vercel/
