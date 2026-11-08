@@ -6,4 +6,5 @@
   <url><loc>https://shftapp.vercel.app/health-data/</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
   <url><loc>https://shftapp.vercel.app/terms/</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
   <url><loc>https://shftapp.vercel.app/cookies/</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://shftapp.vercel.app/licenses/</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
 </urlset>
