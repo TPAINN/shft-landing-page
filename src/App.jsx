@@ -151,6 +151,64 @@ function BuildMediaGrid({ reduced }) {
 // tweens instead of one per particle, with the same parallax spread.
 const PARTICLE_LAYERS = 3;
 
+/* The final stage's only motion besides the phone: a few dust motes drifting upward through the
+   dark, slow enough to read as air rather than effect. Paused off screen and in background tabs;
+   a single still frame when motion is reduced. */
+function FinalParticles({ reduced }) {
+  const canvas = useRef(null);
+  useEffect(() => {
+    const el = canvas.current; if (!el) return undefined;
+    const ctx = el.getContext("2d"); let raf = 0, visible = false, w = 0, h = 0;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const motes = Array.from({ length: 70 }, (_, i) => ({ x: Math.random(), y: Math.random(), r: .5 + Math.random() * 1.6,
+      v: .006 + Math.random() * .014, drift: (Math.random() - .5) * .004, a: .12 + Math.random() * .38, tw: Math.random() * Math.PI * 2 }));
+    const size = () => { w = el.clientWidth; h = el.clientHeight; el.width = w * dpr; el.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+    const draw = (t) => {
+      ctx.clearRect(0, 0, w, h);
+      for (const m of motes) {
+        if (!reduced) { m.y -= m.v / 60; m.x += m.drift / 60; if (m.y < -.02) { m.y = 1.02; m.x = Math.random(); } }
+        const glow = m.a * (.75 + .25 * Math.sin(t / 1600 + m.tw));
+        ctx.beginPath(); ctx.arc(m.x * w, m.y * h, m.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(190, 240, 205, ${glow.toFixed(3)})`; ctx.fill();
+      }
+    };
+    const loop = (t) => { draw(t); raf = visible && !document.hidden ? requestAnimationFrame(loop) : 0; };
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && !raf && !reduced) raf = requestAnimationFrame(loop); });
+    const onVis = () => { if (!document.hidden && visible && !raf && !reduced) raf = requestAnimationFrame(loop); };
+    size(); draw(0); io.observe(el);
+    window.addEventListener("resize", size); document.addEventListener("visibilitychange", onVis);
+    return () => { cancelAnimationFrame(raf); io.disconnect(); window.removeEventListener("resize", size); document.removeEventListener("visibilitychange", onVis); };
+  }, [reduced]);
+  return <canvas ref={canvas} className="final-particles" aria-hidden="true" />;
+}
+
+/* iPhone 18 Pro Max (mockups-design.com, royalty-free) around a frame-exact 60 fps recording of the
+   app's welcome screen. The video loads and plays only while the phone is on screen. */
+function FinalPhone({ reduced }) {
+  const video = useRef(null);
+  useEffect(() => {
+    const v = video.current; if (!v || reduced) return undefined;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { v.preload = "auto"; v.play().catch(() => {}); }
+      else v.pause();
+    }, { rootMargin: "200px 0px" });
+    const onVis = () => { if (document.hidden) v.pause(); };
+    io.observe(v); document.addEventListener("visibilitychange", onVis);
+    return () => { io.disconnect(); document.removeEventListener("visibilitychange", onVis); };
+  }, [reduced]);
+  return <div className="final-device">
+    <div className="final-device-screen">
+      {reduced
+        ? <img src="/media/shft-welcome-poster.webp" alt="" loading="lazy" decoding="async" />
+        : <video ref={video} muted loop playsInline preload="none" poster="/media/shft-welcome-poster.webp">
+            <source src="/media/shft-welcome-loop.webm" type="video/webm" />
+            <source src="/media/shft-welcome-loop.mp4" type="video/mp4" />
+          </video>}
+    </div>
+    <img className="final-device-frame" src="/media/iphone18-frame.webp" alt="" width="1061" height="2194" loading="lazy" decoding="async" />
+  </div>;
+}
+
 function CommunityParticles() {
   return <div className="community-particles" aria-hidden="true">
     {Array.from({ length: PARTICLE_LAYERS }, (_, layer) => <div className="community-particle-layer" key={layer}>
@@ -445,7 +503,7 @@ function App() {
     ambientVideos.forEach((video) => ambientVideoObserver.observe(video));
     document.addEventListener("visibilitychange", syncAmbientPlayback);
     // Floating phones only animate while on screen and the tab is visible.
-    const floatingPhones = [...root.current.querySelectorAll(".final-phone-pixel, .phone-mockup")];
+    const floatingPhones = [...root.current.querySelectorAll(".final-device, .phone-mockup")];
     const visiblePhones = new Set();
     const syncPhoneMotion = () => floatingPhones.forEach((phone) => {
       phone.style.animationPlayState = visiblePhones.has(phone) && !document.hidden ? "running" : "paused";
@@ -742,27 +800,20 @@ function App() {
         trigger: ".community-scene", start: "top 80%", end: "top 45%", scrub: .3,
       } });
       gsap.fromTo(".community-reveal .reveal-inner",
-        { yPercent: 55, autoAlpha: 0, clipPath: "inset(0% 0% 100% 0%)" },
-        { yPercent: 0, autoAlpha: 1, clipPath: "inset(0% 0% 0% 0%)", stagger: .45, ease: "power3.out", scrollTrigger: {
+        { yPercent: 55, autoAlpha: 0, clipPath: "inset(0% -30% 100% -30%)" },
+        { yPercent: 0, autoAlpha: 1, clipPath: "inset(-60% -30% -60% -30%)", stagger: .45, ease: "power3.out", scrollTrigger: {
           trigger: ".community-scene", start: "top 72%", end: "top 12%", scrub: .35,
         } },
       );
-      gsap.fromTo(".again-reps i", { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, stagger: .06, ease: "power2.out", scrollTrigger: {
-        trigger: ".community-scene", start: "top 30%", end: "top 5%", scrub: .3,
-      } });
-      // Act 2 - five reps. Each one ticks a set dot, pulses the word, and sends one ripple
-      // out of it; the glow behind "Again." charges a little more every time. Nothing moves
-      // off-centre, so no line ever slides under the header.
-      const echoes = gsap.utils.toArray(".again-echo");
-      const reps = gsap.utils.toArray(".again-reps i");
-      reps.forEach((dot, index) => {
-        const at = 1.3 + index * .95;
-        communityStory
-          .fromTo(dot, { scale: .55, backgroundColor: "rgba(166, 228, 175, 0)" }, { scale: 1, backgroundColor: "rgba(166, 228, 175, 1)", duration: .3, ease: "back.out(2.2)" }, at)
-          .fromTo(".again-base em", { scale: 1 }, { scale: 1.035, duration: .2, ease: "power2.out", yoyo: true, repeat: 1 }, at)
-          .fromTo(echoes[index], { scale: 1, autoAlpha: .6 }, { scale: 1.42 + index * .06, autoAlpha: 0, duration: 1.15, ease: "power2.out", immediateRender: false }, at)
-          .to(".again-halo", { opacity: .22 + index * .16, scale: 1 + index * .06, duration: .7, ease: "power2.out" }, at);
-      });
+      // Act 2 - one slow beat instead of five reps: the A of "Again." fades away over a long
+      // stretch of scroll while the word glides back to centre, so the line ends on "Gain."
+      // The halo charges once, gently. Offsets are measured, so any font size stays centred.
+      const againA = root.current.querySelector(".again-a");
+      const halfA = () => -(againA ? againA.getBoundingClientRect().width / 2 : 0);
+      communityStory
+        .to(".again-a", { autoAlpha: 0, yPercent: -6, scale: .96, transformOrigin: "50% 60%", duration: 2.4, ease: "sine.inOut" }, 1.8)
+        .to(".again-a, .again-gain", { x: halfA, duration: 2.4, ease: "sine.inOut" }, 1.8)
+        .to(".again-halo", { opacity: .62, scale: 1.12, duration: 2.4, ease: "sine.inOut" }, 1.8);
       communityStory
         .to(".show-up-line", { autoAlpha: .62, duration: 1.2, ease: "power1.inOut" }, 1.5)
         // Act 3 - the whole block leaves together, a soft push back and fade, well before the
@@ -903,12 +954,10 @@ function App() {
               <span className="reveal-line show-up-line"><span className="reveal-inner">Show up.</span></span>
               <span className="reveal-line again-base">
                 <i className="again-halo" aria-hidden="true" />
-                {/* Each rep sends a ripple out of the word itself instead of stacking copies below it. */}
-                {[0, 1, 2, 3, 4].map((rep) => <span className="again-echo" aria-hidden="true" key={rep}>Again.</span>)}
-                <em className="reveal-inner">Again.</em>
+                {/* Show up again, and the A falls away: what is left is the gain. */}
+                <em className="reveal-inner"><span className="again-a">A</span><span className="again-gain">gain.</span></em>
               </span>
             </h2>
-            <div className="again-reps" aria-hidden="true">{[0, 1, 2, 3, 4].map((rep) => <i key={rep} />)}</div>
           </div>
         </div>
       </section>
@@ -940,13 +989,7 @@ function App() {
       <section className="final-cta" aria-label="Explore Shft">
         {/* Sized to what each screen actually shows: phones get an exact crop of the
             visible slice, desktops a width-matched render, never the 14 MP master. */}
-        <picture className="final-artwork" aria-hidden="true">
-          <source media="(max-width: 820px)" srcSet="/media/final-bg-portrait.avif" type="image/avif" />
-          <source media="(max-width: 820px)" srcSet="/media/final-bg-portrait.webp" type="image/webp" />
-          <source srcSet="/media/final-bg-2304.avif 2304w, /media/final-bg-3456.avif 3456w" sizes="(min-aspect-ratio: 16/9) 100vw, 192vh" type="image/avif" />
-          <source srcSet="/media/final-bg-2304.webp 2304w, /media/final-bg-3456.webp 3456w" sizes="(min-aspect-ratio: 16/9) 100vw, 192vh" type="image/webp" />
-          <img src="/media/final-bg-2304.webp" alt="" loading="lazy" decoding="async" />
-        </picture>
+        <FinalParticles reduced={reduced} />
         <div className="final-glow" />
         <div className="final-copy">
           <p className="section-kicker" data-reveal>Coming soon</p>
@@ -955,7 +998,7 @@ function App() {
           <div className="final-actions" data-reveal><a className="text-link" href="#app">Explore the app</a><a className="text-link" href="/support/">Ask a question</a></div>
         </div>
         <div className="final-phones" aria-hidden="true">
-          <img className="final-phone-pixel" src="/media/shft-pixel9-exercises-v2.webp" alt="" loading="lazy" decoding="async" width="1600" height="1600" />
+          <FinalPhone reduced={reduced} />
         </div>
       </section>
 
