@@ -323,7 +323,7 @@ function CommunityWall({ reduced }) {
 }
 
 /* The Android build hosted on this site. Version, size and minimum Android are read off the build. */
-const APK = { href: "/download/shft-1.20.0.apk", version: "1.20.0", size: "21 MB", android: "Android 7+" };
+const APK = { href: "/download/shft-1.20.1.apk", version: "1.20.1", size: "21 MB", android: "Android 7+" };
 const PRICES = {
   monthly: { price: "$2.99", per: "per month", note: "Cancel any time" },
   yearly: { price: "$23.99", per: "per year", note: "About $2.00 a month · save 33%" },
@@ -1014,7 +1014,7 @@ function App() {
               <li>Plateau alerts with a deload plan when a lift stalls</li>
               <li>A coach review of your week, every week</li>
             </ul>
-            <p className="plan-cta-note">Premium opens with the Google Play release.</p>
+            <p className="plan-cta-note">Pay by card in the Android download, cancel any time. Google Play billing arrives with the Play release.</p>
           </article>
         </div>
         <div className="pricing-note" data-reveal><p>Prices in USD; your store shows your local price. No ads, and your training data is never sold.</p><a href="/support/">Questions about plans <span aria-hidden="true">↗</span></a></div>

@@ -2,7 +2,7 @@
 
 > Shft is an Android gym planner and workout tracker that turns scattered sessions into a repeatable system: build a split, log every set, see recovery, and get a clear cue for the next session. Coming soon.
 
-- Platform: Android, free APK download at https://shftapp.vercel.app/download/shft-1.20.0.apk (Google Play coming soon; no iOS version)
+- Platform: Android, free APK download at https://shftapp.vercel.app/download/shft-1.20.1.apk (Google Play coming soon; no iOS version)
 - Pricing (planned launch pricing, not yet on sale): Free — $0, always; Premium — $2.99 per month
 - Built independently by Apostolos Peiniris
 
