@@ -1586,25 +1586,60 @@ section[id] { scroll-margin-top: 80px; }
 /* ───────────────────────────────────────────────────────────────────────────
    REFINEMENTS · 10 Nov 2026 — download hover, rolling price, premium peek, section transitions
    ─────────────────────────────────────────────────────────────────────────── */
-/* Download: the label pill gives way and an arrow circle scales in from the right (hover devices) */
-.download-cta { padding: 0; background: none; box-shadow: none; gap: 0; position: relative; isolation: isolate; }
-.download-cta .dl-inner, .download-cta .dl-circle { height: 52px; border-radius: 999px; background: #a6e4af; display: flex; align-items: center; justify-content: center;
-  white-space: nowrap; transition: all .5s cubic-bezier(.165, .84, .44, 1); }
-.download-cta .dl-inner { position: relative; z-index: 1; width: 100%; padding-inline: 26px 22px; gap: 12px;
-  box-shadow: 0 10px 30px -10px rgba(166, 228, 175, .55), inset 0 1px 0 rgba(255, 255, 255, .45); }
-.download-cta .dl-inline-arrow { display: inline-flex; }
-.download-cta .dl-inline-arrow svg, .download-cta .dl-circle svg { width: 14px; height: 14px; }
-.download-cta .dl-circle { position: absolute; right: 0; top: 0; width: 52px; scale: 0; transform-origin: left center; overflow: hidden; color: #06100a; }
-.download-cta .dl-circle > span { display: grid; place-items: center; width: 100%; height: 100%; transform: translateX(-100%); transition: transform .3s cubic-bezier(.165, .84, .44, 1) .1s; }
-.download-cta:hover { transform: none; box-shadow: none; }
-@media (hover: hover) and (pointer: fine) {
-  .download-cta .dl-inner { padding-inline: 44px; overflow: hidden; }
-  .download-cta .dl-inline-arrow { display: none; }
-  .download-cta:hover .dl-inner, .download-cta:focus-visible .dl-inner { width: calc(100% - 56px); }
-  .download-cta:hover .dl-circle, .download-cta:focus-visible .dl-circle { scale: 1; }
-  .download-cta:hover .dl-circle > span, .download-cta:focus-visible .dl-circle > span { transform: translateX(0); }
+/* Download pill — label letter roll, arrow hand-off in a dark chip, light sweep, spring on the chip.
+   Only transform and opacity move. Hover devices get the full choreography; touch gets the sweep on
+   tap and a gentle sweep every few seconds so the call to action is never static. */
+.download-cta {
+  --dl-ease: cubic-bezier(.22, 1, .36, 1); --dl-spring: cubic-bezier(.34, 1.56, .64, 1);
+  position: relative; isolation: isolate; overflow: hidden; display: inline-flex; align-items: center; gap: 14px;
+  min-height: 56px; padding: 6px 6px 6px 26px; border-radius: 999px; text-decoration: none;
+  background: linear-gradient(180deg, #b9f0c1 0%, #a6e4af 48%, #93d79e 100%); color: #06100a;
+  font: 700 14.5px/1 Manrope, sans-serif; letter-spacing: .005em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -1px 0 rgba(6, 16, 10, .12), 0 1px 2px rgba(0, 0, 0, .25), 0 14px 34px -14px rgba(166, 228, 175, .55);
+  transition: box-shadow .5s var(--dl-ease), scale .35s var(--dl-spring);
 }
-@media (prefers-reduced-motion: reduce) { .download-cta .dl-inner, .download-cta .dl-circle, .download-cta .dl-circle > span { transition: none; } }
+.download-cta:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -1px 0 rgba(6, 16, 10, .12), 0 1px 2px rgba(0, 0, 0, .25), 0 20px 46px -14px rgba(166, 228, 175, .78), 0 0 0 6px rgba(166, 228, 175, .1); }
+.download-cta:active { scale: .965; transition-duration: .12s; }
+.download-cta:focus-visible { outline: 2px solid #eaf4ed; outline-offset: 4px; }
+
+/* label: each letter is a 1-line window holding two copies; the stack rises one line on hover */
+.dl-label { position: relative; z-index: 1; display: inline-flex; white-space: nowrap; }
+.dl-char { position: relative; display: inline-block; overflow: hidden; height: 1.15em; line-height: 1.15em; }
+.dl-char > span { display: block; transition: transform .62s var(--dl-ease); transition-delay: calc(var(--i) * 16ms); }
+.dl-char > span:last-child { position: absolute; left: 0; top: 100%; }
+
+/* chip: dark well with the arrow; one arrow leaves to the right as the next arrives from the left */
+.dl-chip { position: relative; z-index: 1; flex-shrink: 0; width: 44px; height: 44px; border-radius: 999px; overflow: hidden;
+  display: grid; place-items: center; background: #0a130e; color: #a6e4af;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 4px 12px -4px rgba(6, 16, 10, .6);
+  transition: scale .55s var(--dl-spring), background .4s ease; }
+.dl-arrow { grid-area: 1 / 1; display: grid; place-items: center; transition: transform .55s var(--dl-ease), opacity .4s ease; }
+.dl-arrow svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.dl-arrow-next { transform: translateX(-160%); opacity: 0; }
+
+/* sheen: a band of light painted into the pill's own background, swept across by background-position */
+.dl-sheen { display: none; }
+.download-cta { background-image: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .78) 50%, transparent 62%), linear-gradient(180deg, #b9f0c1 0%, #a6e4af 48%, #93d79e 100%);
+  background-size: 300% 100%, 100% 100%; background-repeat: no-repeat; background-position: 130% 0, 0 0; }
+
+@media (hover: hover) and (pointer: fine) {
+  .download-cta:hover .dl-char > span, .download-cta:focus-visible .dl-char > span { transform: translateY(-100%); }
+  .download-cta:hover .dl-chip, .download-cta:focus-visible .dl-chip { scale: 1.08; background: #06100a; }
+  .download-cta:hover .dl-arrow:not(.dl-arrow-next), .download-cta:focus-visible .dl-arrow:not(.dl-arrow-next) { transform: translateX(160%); opacity: 0; }
+  .download-cta:hover .dl-arrow-next, .download-cta:focus-visible .dl-arrow-next { transform: none; opacity: 1; transition-delay: .08s; }
+  .download-cta:hover, .download-cta:focus-visible { animation: dl-sweep 1.3s cubic-bezier(.45, 0, .2, 1) both; }
+}
+@media (hover: none) {
+  .download-cta { animation: dl-sweep 1.2s var(--dl-ease) 2.4s both, dl-idle 7s var(--dl-ease) 4s infinite; }
+  .download-cta:active .dl-chip { scale: 1.08; }
+}
+@keyframes dl-sweep { from { background-position: 130% 0, 0 0; } to { background-position: -30% 0, 0 0; } }
+@keyframes dl-idle { 0%, 80% { background-position: 130% 0, 0 0; } 100% { background-position: -30% 0, 0 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .download-cta, .dl-char > span, .dl-chip, .dl-arrow { transition: none; }
+  .download-cta { animation: none !important; }
+}
+.plan-cta { align-self: flex-start; }
 
 /* Rolling price: tabular digits so the switch never shifts the layout */
 .nf-number { font: inherit; font-variant-numeric: tabular-nums; --number-flow-mask-height: .12em; --number-flow-mask-width: .18em; }

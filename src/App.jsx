@@ -330,11 +330,24 @@ const PRICES = {
   yearly: { price: "$23.99", value: 23.99, per: "per year", note: "About $2.00 a month · save 33%" },
 };
 
+const DOWNLOAD_LABEL = "Download for Android";
+
+/* The download pill: a letter roll on the label, an arrow that leaves and returns in its chip, a
+   light sweep across the pill, and a spring on the chip. Letters are presentational; the link's
+   accessible name comes from aria-label. */
 function DownloadButton({ className = "" }) {
   return (
     <a className={`download-cta ${className}`} href={APK.href} download aria-label={`Download Shft ${APK.version} for Android, ${APK.size}`}>
-      <span className="dl-inner">Download for Android<span className="dl-inline-arrow"><Arrow /></span></span>
-      <span className="dl-circle" aria-hidden="true"><span><Arrow /></span></span>
+      <span className="dl-label" aria-hidden="true">
+        {[...DOWNLOAD_LABEL].map((ch, i) => (
+          <span className="dl-char" style={{ "--i": i }} key={i}>
+            <span>{ch === " " ? " " : ch}</span>
+            <span>{ch === " " ? " " : ch}</span>
+          </span>
+        ))}
+      </span>
+      <span className="dl-chip" aria-hidden="true"><span className="dl-arrow"><Arrow /></span><span className="dl-arrow dl-arrow-next"><Arrow /></span></span>
+      <span className="dl-sheen" aria-hidden="true" />
     </a>
   );
 }
@@ -437,19 +450,8 @@ function App() {
       lerp: .1, smoothWheel: true, wheelMultiplier: 1, anchors: false,
       virtualScroll: (input) => {
         if (input.event.ctrlKey) return;
-        if (settling) { lenis.scrollTo(lenis.actualScroll, { immediate: true }); settling = false; settleCooldown = 0; }
-        if (input.event.type !== "wheel" || performance.now() < settleCooldown || Math.abs(input.deltaY) > 120 || !input.deltaY) return;
-        const y = lenis.targetScroll;
-        const predicted = y + input.deltaY;
-        for (const section of settleSections) {
-          const top = sectionTop(section);
-          if ((top - y) * input.deltaY > 0 && Math.abs(predicted - top) <= 56) {
-            // Correct this input's destination within Lenis itself. The next
-            // wheel event is free to continue through the edge immediately.
-            input.deltaY = top - y;
-            break;
-          }
-        }
+        // Any new input takes the wheel back: a glide in progress hands over from where it is.
+        if (settling) { lenis.scrollTo(lenis.actualScroll, { immediate: true }); settling = false; settleCooldown = performance.now() + 250; }
       },
     });
     lenisRef.current = lenis;
@@ -472,10 +474,33 @@ function App() {
       settling = true;
       settleCooldown = performance.now() + duration * 1000 + 700;
       lenis.scrollTo(targetY, {
-        duration, easing: (t) => 1 - Math.pow(1 - t, 4),
+        duration, easing: (t) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
         onComplete: () => { settling = false; },
       });
     };
+    // Section magnet: free scrolling, then - once the wheel has come to rest - a soft glide to a
+    // section start if one is within about a quarter of the screen. Fast scrolling never triggers
+    // it (the page must be still), a new input cancels it, and touch keeps native momentum.
+    let idleTimer = 0;
+    const magnetRange = () => Math.min(window.innerHeight * .26, 300);
+    const onLenisScroll = () => {
+      if (isTouch || settling) return;
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        if (settling || performance.now() < settleCooldown || Math.abs(lenis.velocity) > .2) return;
+        const y = lenis.scroll;
+        let best = null;
+        for (const section of settleSections) {
+          const top = sectionTop(section);
+          const gap = Math.abs(top - y);
+          if (gap > 3 && gap <= magnetRange() && (best === null || gap < Math.abs(best - y))) best = top;
+        }
+        if (best !== null) glideTo(best, Math.min(1.5, .75 + Math.abs(best - y) / 520));
+      }, 190);
+    };
+    lenis.on("scroll", onLenisScroll);
+    contextCleanupsGlobal.push(() => clearTimeout(idleTimer));
+
     const onAnchorClick = (event) => {
       const link = event.target.closest?.("a[href]");
       if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
@@ -720,7 +745,7 @@ function App() {
           contextCleanups.push(() => window.removeEventListener("pointermove", onPointer));
 
           // Magnetic CTAs: ≤6px pull toward the cursor.
-          gsap.utils.toArray(".button-primary, .nav-cta").forEach((cta) => {
+          gsap.utils.toArray(".button-primary, .nav-cta, .download-cta").forEach((cta) => {
             const ctaX = gsap.quickTo(cta, "x", { duration: 0.45, ease: "power3.out" });
             const ctaY = gsap.quickTo(cta, "y", { duration: 0.45, ease: "power3.out" });
             const onEnter = () => gsap.to(cta, { scale: 1.02, duration: 0.35, ease: "power3.out" });
@@ -838,8 +863,8 @@ function App() {
       const open = isTouch ? "inset(0px 0px 0px 0px round 0px)" : "inset(0px 0vw 0px 0vw round 0px)";
       gsap.utils.toArray(".manifesto, .training-system, .community-scene, .pricing-section").forEach((section) => {
         gsap.fromTo(section, { clipPath: seam }, {
-          clipPath: open, ease: "power1.out",
-          scrollTrigger: { trigger: section, start: "top bottom", end: "top 18%", scrub: .6 },
+          clipPath: open, ease: "power2.out",
+          scrollTrigger: { trigger: section, start: "top bottom", end: "top 12%", scrub: 1.1 },
         });
       });
 
