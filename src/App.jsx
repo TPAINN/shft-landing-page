@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import NumberFlow from "@number-flow/react";
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -325,12 +326,17 @@ function CommunityWall({ reduced }) {
 /* The Android build hosted on this site. Version, size and minimum Android are read off the build. */
 const APK = { href: "/download/shft-1.20.1.apk", version: "1.20.1", size: "21 MB", android: "Android 7+" };
 const PRICES = {
-  monthly: { price: "$2.99", per: "per month", note: "Cancel any time" },
-  yearly: { price: "$23.99", per: "per year", note: "About $2.00 a month · save 33%" },
+  monthly: { price: "$2.99", value: 2.99, per: "per month", note: "Cancel any time" },
+  yearly: { price: "$23.99", value: 23.99, per: "per year", note: "About $2.00 a month · save 33%" },
 };
 
 function DownloadButton({ className = "" }) {
-  return <a className={`download-cta ${className}`} href={APK.href} download aria-label={`Download Shft ${APK.version} for Android, ${APK.size}`}>Download for Android <Arrow /></a>;
+  return (
+    <a className={`download-cta ${className}`} href={APK.href} download aria-label={`Download Shft ${APK.version} for Android, ${APK.size}`}>
+      <span className="dl-inner">Download for Android<span className="dl-inline-arrow"><Arrow /></span></span>
+      <span className="dl-circle" aria-hidden="true"><span><Arrow /></span></span>
+    </a>
+  );
 }
 
 function App() {
@@ -502,7 +508,7 @@ function App() {
       inputEvents.forEach((type) => window.removeEventListener(type, onScrollInput));
     });
 
-    const ambientVideos = root.current ? [...root.current.querySelectorAll(".manifesto-video, .final-light")] : [];
+    const ambientVideos = root.current ? [...root.current.querySelectorAll(".manifesto-video, .final-light, .premium-peek-video")] : [];
     const visibleAmbientVideos = new Set();
     const syncAmbientPlayback = () => ambientVideos.forEach((video) => {
       if (visibleAmbientVideos.has(video) && !document.hidden) video.play().catch(() => {});
@@ -812,7 +818,7 @@ function App() {
       gsap.utils.toArray(".fill-reveal").forEach((paragraph) => {
         SplitText.create(paragraph, {
           type: "words", wordsClass: "fill-word", autoSplit: true,
-          onSplit: (self) => gsap.fromTo(self.words, { opacity: .16 }, {
+          onSplit: (self) => gsap.fromTo(self.words, { opacity: .1 }, {
             opacity: 1, ease: "none", stagger: .08,
             scrollTrigger: { trigger: paragraph, start: "top 88%", end: "top 52%", scrub: .6 },
           }),
@@ -841,6 +847,24 @@ function App() {
         scale: 1, borderRadius: isTouch ? 28 : 48, ease: "power1.out",
         scrollTrigger: { trigger: ".final-cta", start: "top bottom", end: "top 25%", scrub: .6 },
       });
+
+      // Section transitions. The hero falls back slower than the page and dims while the manifesto
+      // rises over it (its rounded seam shows the hero behind). The footer waits underneath the final
+      // section and is uncovered as it scrolls away. Phones keep the dimming and drop the travel.
+      const heroDim = document.createElement("div");
+      heroDim.className = "st-overlay"; heroDim.setAttribute("aria-hidden", "true");
+      document.querySelector(".hero")?.append(heroDim);
+      contextCleanups.push(() => heroDim.remove());
+      gsap.timeline({ scrollTrigger: { trigger: ".manifesto", start: "top bottom", end: "top top", scrub: true } })
+        .to(".hero", { y: isTouch ? 0 : 300, ease: "none", force3D: true }, 0)
+        .to(heroDim, { opacity: .55, ease: "none" }, 0);
+      const footer = document.querySelector(".site-footer");
+      if (footer) {
+        gsap.fromTo(footer, { y: isTouch ? 0 : 140, "--st-dim": .6 }, {
+          y: 0, "--st-dim": 0, ease: "none",
+          scrollTrigger: { trigger: ".final-cta", start: "bottom bottom", end: () => `+=${footer.offsetHeight}`, scrub: true },
+        });
+      }
 
       const communityStory = gsap.timeline({
         scrollTrigger: { ...communityScroll },
@@ -924,6 +948,7 @@ function App() {
 
   return (
     <main ref={root} className={`site${revealed.current ? " is-ready" : ""}${reduced ? " is-motion-off" : ""}`}>
+      <div className="grade-veil" aria-hidden="true" />
       <a className="skip-link" href="#system">Skip to content</a>
       {/* Outside the hero's stacking context so the docked state layers above every section. */}
       <nav className="site-nav" aria-label="Main navigation">
@@ -940,7 +965,6 @@ function App() {
       <section className="hero" id="top" aria-label="Shft introduction">
         <HeroMotion reduced={reduced} />
         <div className="hero-aura" />
-        <div className="grade-veil" aria-hidden="true" />
         <div className="hero-content">
           <p className="hero-eyebrow">Your next version starts here.</p>
           <h1 className="hero-title"><span className="line">Start the</span><span className="line sage">habit.</span></h1>
@@ -1044,8 +1068,14 @@ function App() {
           </article>
           <article className="pricing-plan pricing-plan-premium" aria-labelledby="premium-plan" data-reveal>
             <h3 id="premium-plan">Premium <span className="plan-tag">Coaching layer</span></h3>
-            <p className="plan-price" aria-live="polite"><span>{PRICES[billing].price}</span><span>{PRICES[billing].per}</span></p>
+            <p className="plan-price" aria-live="polite"><span><NumberFlow className="nf-number" value={PRICES[billing].value} format={{ style: "currency", currency: "USD", minimumFractionDigits: 2 }} /></span><span>{PRICES[billing].per}</span></p>
             <p className="plan-description">{PRICES[billing].note}. Your training data, turned into a clear next step.</p>
+            {/* Made with HyperFrames (design/hyperframes/premium-preview in the app repo): the weekly review filling in. */}
+            <div className="premium-peek" aria-hidden="true">
+              {reduced
+                ? <img src="/media/premium-preview-poster.webp" alt="" width="720" height="450" loading="lazy" decoding="async" />
+                : <video className="premium-peek-video" muted loop playsInline preload="none" poster="/media/premium-preview-poster.webp" width="720" height="450"><source src="/media/premium-preview.mp4" type="video/mp4" /></video>}
+            </div>
             <ul>
               <li>Everything in Free</li>
               <li>Weekly volume heatmap against evidence-based targets</li>
@@ -1080,18 +1110,18 @@ function App() {
       </section>
 
       <footer className="site-footer">
-        <div className="footer-brand" data-reveal>
+        <div className="footer-brand">
           <span className="brand-wordmark" role="img" aria-label="Shft" />
           <p>Plans. Sets. Progress.</p>
         </div>
-        <nav className="footer-nav" aria-label="Footer" data-reveal>
+        <nav className="footer-nav" aria-label="Footer">
           <p className="footer-label">Explore Shft</p>
           <a href="#system">The system</a>
           <a href="#app">The app</a>
           <a href="#pricing">Pricing</a>
           <a href="#top">Back to top</a>
         </nav>
-        <nav className="footer-legal" aria-label="Help and legal" data-reveal>
+        <nav className="footer-legal" aria-label="Help and legal">
           <p className="footer-label">Help &amp; legal</p>
           <a href="/support/">Support</a>
           <a href="/privacy/">Privacy</a>
@@ -1099,7 +1129,7 @@ function App() {
           <a href="/terms/">Terms</a>
           <a href="/cookies/">Cookies</a>
         </nav>
-        <div className="footer-meta" data-reveal>
+        <div className="footer-meta">
           <span>© 2026 Shft. All rights reserved.</span>
           <span>Independently built by Apostolos Peiniris.</span>
         </div>

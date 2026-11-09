@@ -1,25 +1,31 @@
-/* Visual adaptation of the supplied details.so page-transition-03 brief.
-   Native document navigation preserves React, scroll history and legal pages;
-   unsupported browsers retain ordinary links rather than a DOM-swap router. */
+/* Page transitions between the landing and the support/legal pages.
+   The browser's own cross-document View Transitions do what a Swup parallel transition does - the
+   outgoing and incoming pages overlap and crossfade through a light blur - without replacing the
+   React root, without a nested scroll container (Lenis and the pinned sections keep window scroll),
+   and on back/forward too. Browsers without support get an ordinary instant navigation. */
 @view-transition { navigation: auto; }
-::view-transition-group(root) { animation-duration: 1.4s; }
-::view-transition-image-pair(root) { isolation: isolate; }
-::view-transition-old(root), ::view-transition-new(root) { mix-blend-mode: normal; }
-::view-transition-old(root) {
-  animation: shft-page-out 1.4s cubic-bezier(.4, .3, 0, 1) both;
+
+::view-transition-group(root) { animation-duration: .9s; animation-timing-function: cubic-bezier(.25, .46, .45, .94); }
+::view-transition-image-pair(root) { isolation: auto; }
+::view-transition-old(root), ::view-transition-new(root) {
+  animation-duration: .9s;
+  animation-timing-function: cubic-bezier(.25, .46, .45, .94);
+  animation-fill-mode: both;
+  mix-blend-mode: normal;
 }
-::view-transition-new(root) {
-  animation: shft-page-in 1.4s cubic-bezier(.4, .3, 0, 1) both;
-}
+::view-transition-old(root) { animation-name: shft-page-out; }
+::view-transition-new(root) { animation-name: shft-page-in; }
 @keyframes shft-page-out {
-  from { opacity: 1; }
-  to { opacity: .5; transform: translateY(-160px) scale(.95); }
+  from { opacity: 1; filter: blur(0); transform: none; }
+  to { opacity: 0; filter: blur(5px); transform: scale(.985); }
 }
 @keyframes shft-page-in {
-  from { transform: translateY(50dvh); clip-path: inset(70% 0 0 0); }
-  to { transform: none; clip-path: inset(0); }
+  from { opacity: 0; filter: blur(5px); transform: scale(1.015); }
+  to { opacity: 1; filter: blur(0); transform: none; }
 }
+/* Opaque ground under both snapshots so nothing bleeds through mid-blend */
+html { background: #030504; }
+
 @media (prefers-reduced-motion: reduce) {
   @view-transition { navigation: none; }
-  ::view-transition-group(root), ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
 }
