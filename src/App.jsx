@@ -13,7 +13,7 @@ const chapters = [
     title: "Build a plan you trust.",
     copy: "Choose your split. Shape the week before your first set.",
     screenImage: "/media/shft-ios-plan-builder.webp",
-    screenAlt: "Shft Plan Builder screen with a Monday Chest workout",
+    screenAlt: "Shft plan builder with a Tuesday lower-body day",
   },
   {
     step: "02",
@@ -35,7 +35,7 @@ const chapters = [
     step: "04",
     name: "Review",
     title: "See every set count.",
-    copy: "Each session ends with your top sets, first-time lifts, and total volume.",
+    copy: "Every session ends with your sets, your time, and any new records.",
     screenImage: "/media/shft-ios-session-summary.webp",
     screenAlt: "Shft session summary screen",
   },
@@ -43,17 +43,17 @@ const chapters = [
     step: "05",
     name: "Recover",
     title: "Train what is ready.",
-    copy: "Estimates from your logged sessions show which muscles are fresh and which need time.",
+    copy: "Recovery clocks built from your own sessions show which days are ready and which muscles still need time.",
     screenImage: "/media/shft-ios-recovery.webp",
-    screenAlt: "Shft recovery screen with a muscle fatigue map",
+    screenAlt: "Shft recovery screen with each plan day's readiness and a muscle map",
   },
   {
     step: "06",
     name: "Progress",
     title: "See what to do next.",
-    copy: "When you hit the top of your range, Shft gives you the next cue.",
+    copy: "A weekly streak and a volume heatmap show where to add work next.",
     screenImage: "/media/shft-ios-progress.webp",
-    screenAlt: "Shft progress screen",
+    screenAlt: "Shft progress screen with the weekly streak and volume heatmap",
   },
 ];
 
@@ -428,7 +428,7 @@ function App() {
     const contextCleanups = [];
     const isTouch = window.matchMedia("(pointer: coarse)").matches;
     const lenis = new Lenis({
-      lerp: .14, smoothWheel: true, wheelMultiplier: 1, anchors: false,
+      lerp: .1, smoothWheel: true, wheelMultiplier: 1, anchors: false,
       virtualScroll: (input) => {
         if (input.event.ctrlKey) return;
         if (settling) { lenis.scrollTo(lenis.actualScroll, { immediate: true }); settling = false; settleCooldown = 0; }
@@ -671,8 +671,11 @@ function App() {
         systemStory
           .to(panels[index - 1], { autoAlpha: 0, y: -20, duration: .34 }, at + .14)
           .set(phoneScreens[index], { zIndex: index + 1 }, at)
-          .to(phoneScreens[index - 1], { xPercent: -24, scale: 1, autoAlpha: .86, duration: 1, ease: "power2.inOut" }, at)
-          .fromTo(phoneScreens[index], { xPercent: 100, autoAlpha: 1, scale: 1 }, { xPercent: 0, scale: 1, duration: 1, ease: "power2.inOut" }, at)
+          // A clip wipe: the next screen is uncovered from the right edge while the one under it
+          // settles back a touch and dims - one surface turning a page, not two images sliding.
+          .to(phoneScreens[index - 1], { xPercent: -6, scale: .96, autoAlpha: .55, duration: 1, ease: "power2.inOut" }, at)
+          .fromTo(phoneScreens[index], { xPercent: 10, autoAlpha: 1, scale: 1, clipPath: "inset(0% 0% 0% 100% round 0px)" },
+            { xPercent: 0, scale: 1, clipPath: "inset(0% 0% 0% 0% round 0px)", duration: 1, ease: "power3.inOut" }, at)
           .fromTo(panels[index], { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: .48 }, at + .5);
         if (index > 1) systemStory.to(phoneScreens[index - 2], { autoAlpha: 0, duration: .01 }, at + 1);
       }
@@ -804,6 +807,41 @@ function App() {
         );
       });
 
+      // Text fill: body lines that matter are written in, word by word, as they cross the
+      // reading line - dim ink fills to full as the page moves, and empties again on the way back.
+      gsap.utils.toArray(".fill-reveal").forEach((paragraph) => {
+        SplitText.create(paragraph, {
+          type: "words", wordsClass: "fill-word", autoSplit: true,
+          onSplit: (self) => gsap.fromTo(self.words, { opacity: .16 }, {
+            opacity: 1, ease: "none", stagger: .08,
+            scrollTrigger: { trigger: paragraph, start: "top 88%", end: "top 52%", scrub: .6 },
+          }),
+        });
+      });
+
+      // Accent words get a light pass once their line has landed: a soft sheen crosses the
+      // mint fill left to right, so the emphasis is felt rather than just coloured.
+      gsap.utils.toArray(".hero-title .sage, .manifesto h2 em, .pricing-section h2 em, .final-cta h2 em, .community-reveal .again-gain").forEach((word) => {
+        word.classList.add("fill-sheen");
+        ScrollTrigger.create({ trigger: word, start: "top 80%", once: true, onEnter: () => gsap.delayedCall(word.closest(".hero") ? 1.5 : .7, () => word.classList.add("is-lit")) });
+      });
+
+      // Section seams: each chapter arrives inset with rounded corners and opens to full bleed
+      // as it reaches the top, so the page reads as one continuous piece turning, not stacked blocks.
+      const seam = isTouch ? "inset(14px 12px 0px 12px round 26px)" : "inset(40px 2.6vw 0px 2.6vw round 40px)";
+      const open = isTouch ? "inset(0px 0px 0px 0px round 0px)" : "inset(0px 0vw 0px 0vw round 0px)";
+      gsap.utils.toArray(".manifesto, .training-system, .community-scene, .pricing-section").forEach((section) => {
+        gsap.fromTo(section, { clipPath: seam }, {
+          clipPath: open, ease: "power1.out",
+          scrollTrigger: { trigger: section, start: "top bottom", end: "top 18%", scrub: .6 },
+        });
+      });
+
+      gsap.fromTo(".final-stage", { scale: .955, borderRadius: isTouch ? 34 : 64 }, {
+        scale: 1, borderRadius: isTouch ? 28 : 48, ease: "power1.out",
+        scrollTrigger: { trigger: ".final-cta", start: "top bottom", end: "top 25%", scrub: .6 },
+      });
+
       const communityStory = gsap.timeline({
         scrollTrigger: { ...communityScroll },
       });
@@ -923,7 +961,7 @@ function App() {
           <p className="section-kicker" data-reveal>Built for your next session.</p>
           <div className="manifesto-grid">
           <h2>You do not need to be ready. <em>Just start.</em></h2>
-            <div className="manifesto-copy" data-reveal><p>Library, plan builder, logging, and progression cues in one focused app.</p></div>
+            <div className="manifesto-copy"><p className="fill-reveal">Library, plan builder, logging, and progression cues in one focused app.</p></div>
           </div>
           <div className="manifesto-trace" aria-hidden="true"><span className="trace-step">Plan it</span><i /><span className="trace-step">Do it</span><i /><span className="trace-step">Repeat it</span></div>
         </div>
@@ -981,7 +1019,7 @@ function App() {
         <div className="pricing-heading">
           <p className="section-kicker" data-reveal>Simple pricing</p>
           <h2 id="pricing-title">Train free.<br /><em>Add a coach.</em></h2>
-          <p data-reveal>The whole training app is free, with no ads and no exercise paywall. Premium reads your week and tells you what to do next.</p>
+          <p className="fill-reveal">The whole training app is free, with no ads and no exercise paywall. Premium reads your week and tells you what to do next.</p>
           <div className="billing-toggle" role="radiogroup" aria-label="Billing period" data-reveal>
             {["monthly", "yearly"].map((k) => (
               <button key={k} type="button" role="radio" aria-checked={billing === k} className={billing === k ? "is-on" : ""} onClick={() => setBilling(k)}>
@@ -1029,7 +1067,7 @@ function App() {
         <div className="final-copy">
           <p className="section-kicker" data-reveal>Out now on Android</p>
           <h2>Your next session starts <em>with a plan.</em></h2>
-          <p data-reveal>Free to download. Google Play coming soon.</p>
+          <p className="fill-reveal">Free to download. Google Play coming soon.</p>
           <div className="final-actions" data-reveal><DownloadButton /><a className="text-link" href="/support/">Ask a question</a></div>
         </div>
         <div className="final-phones" aria-hidden="true">
@@ -1062,6 +1100,7 @@ function App() {
           <span>Independently built by Apostolos Peiniris.</span>
         </div>
         <div className="footer-actions">
+          <p className="footer-label footer-built">Built by</p>
           <a className="ap-signature" href="https://apostolos-peiniris.vercel.app/" target="_blank" rel="noreferrer"><img src="/media/ap-signature.webp" alt="Apostolos Peiniris" loading="lazy" decoding="async" /></a>
           <a className="footer-top" href="#top" aria-label="Back to top"><img src="/media/tpainn-github-avatar.webp" alt="" width="160" height="160" loading="lazy" decoding="async" /></a>
         </div>
