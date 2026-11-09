@@ -322,7 +322,19 @@ function CommunityWall({ reduced }) {
   </div>;
 }
 
+/* The Android build hosted on this site. Version, size and minimum Android are read off the build. */
+const APK = { href: "/download/shft-1.20.0.apk", version: "1.20.0", size: "21 MB", android: "Android 7+" };
+const PRICES = {
+  monthly: { price: "$2.99", per: "per month", note: "Cancel any time" },
+  yearly: { price: "$23.99", per: "per year", note: "About $2.00 a month · save 33%" },
+};
+
+function DownloadButton({ className = "" }) {
+  return <a className={`download-cta ${className}`} href={APK.href} download aria-label={`Download Shft ${APK.version} for Android, ${APK.size}`}>Download for Android <Arrow /></a>;
+}
+
 function App() {
+  const [billing, setBilling] = useState("yearly");
   const internalArrival = Boolean(document.referrer && new URL(document.referrer).origin === window.location.origin);
   // The reveal is imperative, not state: re-rendering this whole tree on the
   // curtain's first frame is exactly what made the exit stutter.
@@ -879,7 +891,7 @@ function App() {
       <nav className="site-nav" aria-label="Main navigation">
         <a className="brand" href="#top" aria-label="Shft — back to top"><span className="brand-wordmark" role="img" aria-label="Shft" /></a>
         <div className="nav-links"><a href="#system">The system</a><a href="#app">The app</a></div>
-        <a className="nav-cta" href="#system">Explore Shft <Arrow /></a>
+        <a className="nav-cta" href={APK.href} download>Download <Arrow /></a>
       </nav>
       <div className="preloader" aria-hidden={revealed.current}>
         <div className="preloader-veil" aria-hidden="true" />
@@ -896,9 +908,10 @@ function App() {
           <h1 className="hero-title"><span className="line">Start the</span><span className="line sage">habit.</span></h1>
           <p className="hero-copy">Your training app for plans, sets, and the next session. A clear plan gets you through the door.</p>
           <div className="hero-actions">
-            <span className="coming-soon-status">Coming soon</span>
+            <DownloadButton />
             <a className="text-link hero-secondary" href="#system">Explore Shft</a>
           </div>
+          <p className="download-meta">Free · {APK.android} · v{APK.version} · {APK.size} · Google Play coming soon</p>
         </div>
         <div className="hero-scroll"><span>Scroll to shift</span><i /></div>
       </section>
@@ -949,7 +962,7 @@ function App() {
           <CommunityParticles />
           <div className="community-handoff" aria-hidden="true" />
           <div className="community-copy">
-            <p className="community-kicker">The hours you make yours</p>
+            <p className="community-kicker">Strength is repetition</p>
             <h2 className="community-reveal">
               <span className="reveal-line show-up-line"><span className="reveal-inner">Show up.</span></span>
               <span className="reveal-line again-base">
@@ -958,6 +971,7 @@ function App() {
                 <em className="reveal-inner"><span className="again-a">A</span><span className="again-gain">gain.</span></em>
               </span>
             </h2>
+            <p className="community-sub">Every session you repeat builds on the last. Shft keeps the count, so each return starts from your best.</p>
           </div>
         </div>
       </section>
@@ -966,36 +980,57 @@ function App() {
         <div className="pricing-atmosphere" aria-hidden="true" />
         <div className="pricing-heading">
           <p className="section-kicker" data-reveal>Simple pricing</p>
-          <h2 id="pricing-title">Your training.<br /><em>Your choice.</em></h2>
-          <p data-reveal>A free training core. A little more guidance when you want it.</p>
+          <h2 id="pricing-title">Train free.<br /><em>Add a coach.</em></h2>
+          <p data-reveal>The whole training app is free, with no ads and no exercise paywall. Premium reads your week and tells you what to do next.</p>
+          <div className="billing-toggle" role="radiogroup" aria-label="Billing period" data-reveal>
+            {["monthly", "yearly"].map((k) => (
+              <button key={k} type="button" role="radio" aria-checked={billing === k} className={billing === k ? "is-on" : ""} onClick={() => setBilling(k)}>
+                {k === "monthly" ? "Monthly" : "Yearly"}{k === "yearly" && <span className="billing-save">−33%</span>}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="pricing-plans">
           <article className="pricing-plan" aria-labelledby="free-plan" data-reveal>
             <h3 id="free-plan">Free</h3>
-            <p className="plan-price"><span>$0</span><span>Always free</span></p>
-            <p className="plan-description">Everything you need to keep showing up.</p>
-            <ul><li>Build plans and log unlimited workouts</li><li>Explore the library and add your exercises</li><li>Follow your records and training progress</li><li>Keep your workout history</li></ul>
+            <p className="plan-price"><span>$0</span><span>Forever</span></p>
+            <p className="plan-description">Everything you need to train, log and progress.</p>
+            <ul>
+              <li>Every exercise illustrated, with technique cues</li>
+              <li>Unlimited plans, splits and logged sessions</li>
+              <li>Records, trends and all-time bests</li>
+              <li>Recovery clocks for every muscle</li>
+              <li>Cloud backup to your account</li>
+            </ul>
+            <DownloadButton className="plan-cta" />
           </article>
           <article className="pricing-plan pricing-plan-premium" aria-labelledby="premium-plan" data-reveal>
-            <h3 id="premium-plan">Premium</h3>
-            <p className="plan-price"><span>$2.99</span><span>per month</span></p>
-            <p className="plan-description">Your training data. A clearer next step.</p>
-            <ul><li>Everything in Free</li><li>See your weekly training-volume balance</li><li>Spot when progress starts to stall</li><li>Get a focused weekly training review</li></ul>
+            <h3 id="premium-plan">Premium <span className="plan-tag">Coaching layer</span></h3>
+            <p className="plan-price" aria-live="polite"><span>{PRICES[billing].price}</span><span>{PRICES[billing].per}</span></p>
+            <p className="plan-description">{PRICES[billing].note}. Your training data, turned into a clear next step.</p>
+            <ul>
+              <li>Everything in Free</li>
+              <li>Weekly volume heatmap against evidence-based targets</li>
+              <li>Plateau alerts with a deload plan when a lift stalls</li>
+              <li>A coach review of your week, every week</li>
+            </ul>
+            <p className="plan-cta-note">Premium opens with the Google Play release.</p>
           </article>
         </div>
-        <div className="pricing-note" data-reveal><p>Planned launch pricing. Premium features and purchases are not available yet.</p><a href="/support/">Questions about plans <span aria-hidden="true">↗</span></a></div>
+        <div className="pricing-note" data-reveal><p>Prices in USD; your store shows your local price. No ads, and your training data is never sold.</p><a href="/support/">Questions about plans <span aria-hidden="true">↗</span></a></div>
       </section>
 
       <section className="final-cta" aria-label="Explore Shft">
         {/* Sized to what each screen actually shows: phones get an exact crop of the
             visible slice, desktops a width-matched render, never the 14 MP master. */}
         <FinalParticles reduced={reduced} />
+        <div className="final-stage" aria-hidden="true"><i className="final-spot" /><i className="final-floor" /><i className="final-rim" /></div>
         <div className="final-glow" />
         <div className="final-copy">
-          <p className="section-kicker" data-reveal>Coming soon</p>
+          <p className="section-kicker" data-reveal>Out now on Android</p>
           <h2>Your next session starts <em>with a plan.</em></h2>
-          <p data-reveal>Keep your plan close. Return ready.</p>
-          <div className="final-actions" data-reveal><a className="text-link" href="#app">Explore the app</a><a className="text-link" href="/support/">Ask a question</a></div>
+          <p data-reveal>Free to download. Google Play coming soon.</p>
+          <div className="final-actions" data-reveal><DownloadButton /><a className="text-link" href="/support/">Ask a question</a></div>
         </div>
         <div className="final-phones" aria-hidden="true">
           <FinalPhone reduced={reduced} />
