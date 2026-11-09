@@ -502,7 +502,7 @@ function App() {
       inputEvents.forEach((type) => window.removeEventListener(type, onScrollInput));
     });
 
-    const ambientVideos = root.current ? [...root.current.querySelectorAll(".manifesto-video")] : [];
+    const ambientVideos = root.current ? [...root.current.querySelectorAll(".manifesto-video, .final-light")] : [];
     const visibleAmbientVideos = new Set();
     const syncAmbientPlayback = () => ambientVideos.forEach((video) => {
       if (visibleAmbientVideos.has(video) && !document.hidden) video.play().catch(() => {});
@@ -1062,7 +1062,11 @@ function App() {
         {/* Sized to what each screen actually shows: phones get an exact crop of the
             visible slice, desktops a width-matched render, never the 14 MP master. */}
         <FinalParticles reduced={reduced} />
-        <div className="final-stage" aria-hidden="true"><i className="final-spot" /><i className="final-floor" /><i className="final-rim" /></div>
+        <div className="final-stage" aria-hidden="true">
+          {/* Light loop made in EffectCraft (design/effects/final_light.jsx): fog and slow shafts on black, screen-blended. */}
+          {!reduced && <video className="final-light" muted loop playsInline preload="metadata" tabIndex={-1}><source src="/media/final-light.webm" type="video/webm" /><source src="/media/final-light.mp4" type="video/mp4" /></video>}
+          <i className="final-spot" /><i className="final-floor" /><i className="final-rim" />
+        </div>
         <div className="final-glow" />
         <div className="final-copy">
           <p className="section-kicker" data-reveal>Out now on Android</p>
