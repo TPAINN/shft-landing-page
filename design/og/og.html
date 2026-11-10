@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<!-- Share card for links (Open Graph / Twitter), 1200x630. Rendered to public/media/og-shft-v2.jpg by design/og/render.mjs. -->
+<style>
+  @font-face { font-family: "Saira Condensed"; src: url("../../public/fonts/saira-condensed-ee643d1b-latin.woff2") format("woff2"); font-weight: 800; }
+  @font-face { font-family: "Saira Condensed"; src: url("../../public/fonts/saira-condensed-c2c07417-latin.woff2") format("woff2"); font-weight: 700; }
+  @font-face { font-family: "Manrope"; src: url("../../public/fonts/manrope-bcbadccc-latin.woff2") format("woff2"); font-weight: 200 800; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; background: #040705; }
+  .card { position: relative; width: 1200px; height: 630px; overflow: hidden; font-family: "Manrope", sans-serif; color: #eaf4ed;
+    background:
+      radial-gradient(48% 70% at 79% 46%, rgba(120, 214, 148, .30) 0%, rgba(60, 140, 90, .12) 38%, transparent 70%),
+      radial-gradient(70% 90% at 15% 110%, rgba(40, 90, 60, .25), transparent 60%),
+      linear-gradient(180deg, #08110c 0%, #050906 60%, #030504 100%); }
+  /* faint gym-floor grid, receding */
+  .floor { position: absolute; left: -10%; right: -10%; bottom: -40px; height: 300px; transform: perspective(500px) rotateX(62deg); transform-origin: 50% 100%;
+    background-image: linear-gradient(rgba(166, 228, 175, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(166, 228, 175, .08) 1px, transparent 1px);
+    background-size: 60px 60px; -webkit-mask-image: linear-gradient(180deg, transparent, #000 40%, #000 70%, transparent); }
+  .rim { position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(166, 228, 175, .45) 30%, rgba(166, 228, 175, .15) 70%, transparent); }
+  .copy { position: absolute; left: 78px; top: 62px; width: 600px; }
+  .wordmark { width: 128px; aspect-ratio: 3 / 1; background: linear-gradient(110deg, #e8f7eb 4%, #a6e4af 46%, #69c990 100%);
+    -webkit-mask: url("../../public/media/brand-wordmark-glow.png") left center / contain no-repeat; mask: url("../../public/media/brand-wordmark-glow.png") left center / contain no-repeat;
+    filter: drop-shadow(0 6px 18px rgba(76, 168, 118, .35)); }
+  h1 { margin-top: 38px; font-family: "Saira Condensed", sans-serif; font-weight: 800; font-size: 126px; line-height: .86; letter-spacing: -.01em; text-transform: uppercase; }
+  h1 em { font-style: normal; color: #a6e4af; text-shadow: 0 0 40px rgba(166, 228, 175, .35); }
+  p.sub { margin-top: 24px; font-size: 25px; line-height: 1.35; color: #c9dacd; font-weight: 500; max-width: 470px; }
+  .meta { position: absolute; left: 78px; bottom: 62px; display: flex; align-items: center; gap: 18px; }
+  .pill { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px 12px 16px; border-radius: 999px; background: #a6e4af; color: #06100a; font-weight: 800; font-size: 20px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 10px 30px -10px rgba(166, 228, 175, .6); }
+  .pill svg { width: 22px; height: 22px; }
+  .url { font-size: 20px; color: #8fa595; font-weight: 600; letter-spacing: .01em; }
+  /* phones: real app screens in the iPhone 18 frame used on the landing */
+  .device { position: absolute; aspect-ratio: 1061 / 2194; filter: drop-shadow(0 40px 50px rgba(0, 0, 0, .7)); }
+  .device .screen { position: absolute; left: 4.053%; top: 1.641%; width: 91.894%; height: 96.764%; overflow: hidden; border-radius: 12% / 5.6%; background: #070907; }
+  .device .screen img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .device .frame { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .back { width: 268px; left: 868px; top: 84px; transform: rotate(7deg); opacity: .9; }
+  .back .screen::after { content: ""; position: absolute; inset: 0; background: rgba(4, 7, 5, .38); }
+  .front { width: 300px; left: 736px; top: 120px; transform: rotate(-5deg); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="floor"></div>
+    <div class="rim"></div>
+    <div class="copy">
+      <div class="wordmark" role="img" aria-label="Shft"></div>
+      <h1>Start the<br /><em>habit.</em></h1>
+      <p class="sub">Your gym plan, every set logged, and a coach that reads your week.</p>
+    </div>
+    <div class="meta">
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14" /></svg>Free on Android</span>
+      <span class="url">shftapp.vercel.app</span>
+    </div>
+    <div class="device back"><div class="screen"><img src="../../public/media/shft-ios-progress.webp" alt="" /></div><img class="frame" src="../../public/media/iphone18-frame.webp" alt="" /></div>
+    <div class="device front"><div class="screen"><img src="../../public/media/shft-welcome-poster.webp" alt="" /></div><img class="frame" src="../../public/media/iphone18-frame.webp" alt="" /></div>
+  </div>
+</body>
+</html>
