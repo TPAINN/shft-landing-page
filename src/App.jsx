@@ -1067,7 +1067,7 @@ function App() {
         <div className="pricing-atmosphere" aria-hidden="true" />
         <div className="pricing-heading">
           <p className="section-kicker" data-reveal>Simple pricing</p>
-          <h2 id="pricing-title">Train free.<br /><em>Add a coach.</em></h2>
+          <h2 id="pricing-title">Train free. OR<br /><em>Add a coach.</em></h2>
           <p className="fill-reveal">The whole training app is free, with no ads and no exercise paywall. Premium reads your week and tells you what to do next.</p>
           <div className="billing-toggle" role="radiogroup" aria-label="Billing period" data-reveal>
             {["monthly", "yearly"].map((k) => (
