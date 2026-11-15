@@ -90,17 +90,22 @@
   "redirects": [
     {
       "source": "/download/shft-1.20.0.apk",
-      "destination": "/download/shft-1.20.2.apk",
+      "destination": "/download/shft-1.20.3.apk",
       "permanent": false
     },
     {
       "source": "/download/shft-1.20.1.apk",
-      "destination": "/download/shft-1.20.2.apk",
+      "destination": "/download/shft-1.20.3.apk",
+      "permanent": false
+    },
+    {
+      "source": "/download/shft-1.20.2.apk",
+      "destination": "/download/shft-1.20.3.apk",
       "permanent": false
     },
     {
       "source": "/download/latest.apk",
-      "destination": "/download/shft-1.20.2.apk",
+      "destination": "/download/shft-1.20.3.apk",
       "permanent": false
     }
   ]
