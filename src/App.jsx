@@ -59,11 +59,11 @@ const chapters = [
 ];
 
 const buildGridMedia = [
-  { type: "video", src: "/media/build-reset.mp4" },
-  { type: "video", src: "/media/build-redplates.mp4" },
-  { type: "image", src: "/media/build-pulldown.webp" },
-  { type: "video", src: "/media/build-squat.mp4" },
-  { type: "image", src: "/media/build-barbell.webp" },
+  { type: "video", src: "/media/build-plates.mp4" },
+  { type: "video", src: "/media/build-load.mp4" },
+  { type: "image", src: "/media/build-collar.webp" },
+  { type: "video", src: "/media/build-lift.mp4" },
+  { type: "image", src: "/media/build-setup.webp" },
   { type: "image", src: "/media/ambient-lifter.webp" },
 ];
 
@@ -76,16 +76,16 @@ const communityParticles = Array.from({ length: 56 }, (_, index) => ({
 
 const communityRails = [
   { side: "left-outer", media: [
-    "/media/community-flow-01-compact.mp4", "/media/community-flow-02-compact.mp4", "/media/community-flow-03-compact.mp4", "/media/community-flow-04-compact.mp4", "/media/community-flow-05-compact.mp4", "/media/community-more-09.mp4",
+    "/media/wall-01-compact.mp4", "/media/wall-02-compact.mp4", "/media/wall-03-compact.mp4", "/media/wall-04-compact.mp4", "/media/wall-05-compact.mp4", "/media/wall-06-compact.mp4",
   ] },
   { side: "left-inner", media: [
-    "/media/community-flow-06-compact.mp4", "/media/community-flow-07-compact.mp4", "/media/community-flow-08-compact.mp4", "/media/community-flow-09-compact.mp4", "/media/community-flow-10-compact.mp4",
+    "/media/wall-07-compact.mp4", "/media/wall-08-compact.mp4", "/media/wall-09-compact.mp4", "/media/wall-10-compact.mp4", "/media/wall-11-compact.mp4",
   ] },
   { side: "right-inner", media: [
-    "/media/community-flow-11-compact.mp4", "/media/community-flow-12-compact.mp4", "/media/community-more-01-compact.mp4", "/media/community-more-02-compact.mp4", "/media/community-more-03-compact.mp4",
+    "/media/wall-12-compact.mp4", "/media/wall-13-compact.mp4", "/media/wall-14-compact.mp4", "/media/wall-15-compact.mp4", "/media/wall-16-compact.mp4",
   ] },
   { side: "right-outer", media: [
-    "/media/community-more-04-compact.mp4", "/media/community-more-05-compact.mp4", "/media/community-more-06-compact.mp4", "/media/community-more-07-compact.mp4", "/media/community-more-08-compact.mp4", "/media/community-more-10.mp4",
+    "/media/wall-17-compact.mp4", "/media/wall-18-compact.mp4", "/media/wall-19-compact.mp4", "/media/wall-20-compact.mp4", "/media/wall-21-compact.mp4", "/media/wall-22-compact.mp4",
   ] },
 ];
 
@@ -468,6 +468,19 @@ function App() {
       const anchor = section.parentElement.classList.contains("pin-spacer") ? section.parentElement : section;
       return Math.max(0, Math.min(window.scrollY + anchor.getBoundingClientRect().top, document.documentElement.scrollHeight - window.innerHeight));
     };
+    // Where a section comes to rest. Most rest on their top edge; one that marks a block with
+    // data-settle-focus rests with that block whole and centred under the nav instead, so a
+    // section taller than its content never parks with the part people came for cut off.
+    const settleY = (section) => {
+      const top = sectionTop(section);
+      const focus = section.querySelector("[data-settle-focus]");
+      if (!focus) return top;
+      const rect = focus.getBoundingClientRect();
+      const navClear = 92, room = window.innerHeight - navClear - 20;
+      const focusTop = window.scrollY + rect.top;
+      const y = rect.height <= room ? focusTop - navClear - (room - rect.height) / 2 : focusTop - navClear;
+      return Math.max(top, Math.min(y, document.documentElement.scrollHeight - window.innerHeight));
+    };
     let settleCooldown = 0;
     let settling = false;
     const glideTo = (targetY, duration = 1.15) => {
@@ -491,9 +504,12 @@ function App() {
         const y = lenis.scroll;
         let best = null;
         for (const section of settleSections) {
-          const top = sectionTop(section);
+          const top = settleY(section);
           const gap = Math.abs(top - y);
-          if (gap > 3 && gap <= magnetRange() && (best === null || gap < Math.abs(best - y))) best = top;
+          // a section with a focus block pulls from further away: stopping a little past it is the
+          // usual way to end up with that block cut off
+          const range = section.querySelector("[data-settle-focus]") ? Math.min(window.innerHeight * .44, 480) : magnetRange();
+          if (gap > 3 && gap <= range && (best === null || gap < Math.abs(best - y))) best = top;
         }
         if (best !== null) glideTo(best, Math.min(1.5, .75 + Math.abs(best - y) / 520));
       }, 190);
@@ -513,7 +529,7 @@ function App() {
       if (location.hash !== url.hash) history.pushState(null, "", url.hash);
       target.setAttribute("tabindex", "-1");
       target.focus({ preventScroll: true });
-      glideTo(sectionTop(target), 1.35);
+      glideTo(target.matches("section") ? settleY(target) : sectionTop(target), 1.35);
     };
     const onScrollInput = (event) => {
       if (event.type === "keydown" && !["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].includes(event.key)) return;
@@ -868,6 +884,42 @@ function App() {
         });
       });
 
+      // Pricing comes in as a sequence, not a block: each plan's lines follow its card in.
+      gsap.utils.toArray(".pricing-plan").forEach((plan) => {
+        gsap.from(plan.querySelectorAll("li"), {
+          x: -12, autoAlpha: 0, duration: .6, ease: "power3.out", stagger: .07,
+          scrollTrigger: { trigger: plan, start: "top 78%", toggleActions: "play none none reverse" },
+        });
+      });
+      // Depth under the pointer (mouse only): the hero footage drifts a few pixels against the
+      // cursor, and the Premium card carries a soft light where the cursor is.
+      if (!isTouch) {
+        const heroVideo = document.querySelector(".hero-motion video");
+        const hero = document.querySelector(".hero");
+        if (heroVideo && hero) {
+          gsap.set(heroVideo, { scale: 1.04 });
+          const moveX = gsap.quickTo(heroVideo, "x", { duration: 1.4, ease: "power3.out" });
+          const moveY = gsap.quickTo(heroVideo, "y", { duration: 1.4, ease: "power3.out" });
+          const onHeroMove = (event) => {
+            const rect = hero.getBoundingClientRect();
+            moveX(((event.clientX - rect.left) / rect.width - .5) * -18);
+            moveY(((event.clientY - rect.top) / rect.height - .5) * -12);
+          };
+          hero.addEventListener("pointermove", onHeroMove, { passive: true });
+          contextCleanups.push(() => hero.removeEventListener("pointermove", onHeroMove));
+        }
+        const premium = document.querySelector(".pricing-plan-premium");
+        if (premium) {
+          const onPremiumMove = (event) => {
+            const rect = premium.getBoundingClientRect();
+            premium.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+            premium.style.setProperty("--my", `${event.clientY - rect.top}px`);
+          };
+          premium.addEventListener("pointermove", onPremiumMove, { passive: true });
+          contextCleanups.push(() => premium.removeEventListener("pointermove", onPremiumMove));
+        }
+      }
+
       gsap.fromTo(".final-stage", { scale: .955, borderRadius: isTouch ? 34 : 64 }, {
         scale: 1, borderRadius: isTouch ? 28 : 48, ease: "power1.out",
         scrollTrigger: { trigger: ".final-cta", start: "top bottom", end: "top 25%", scrub: .6 },
@@ -885,6 +937,17 @@ function App() {
         .to(heroDim, { opacity: .55, ease: "none" }, 0);
       const footer = document.querySelector(".site-footer");
       if (footer) {
+        // The footer is pinned to the bottom of the screen underneath the whole page, so every
+        // rounded seam and every gap between sections used to show it. It stays out of the
+        // picture until the last section is on screen, which is the only one it sits under.
+        const site = root.current;
+        site.classList.add("footer-held");
+        contextCleanups.push(() => site.classList.remove("footer-held"));
+        ScrollTrigger.create({
+          trigger: ".final-cta", start: "top bottom",
+          onToggle: (self) => site.classList.toggle("footer-held", !self.isActive && self.progress === 0),
+          onRefresh: (self) => site.classList.toggle("footer-held", self.progress === 0 && !self.isActive),
+        });
         gsap.fromTo(footer, { y: isTouch ? 0 : 140, "--st-dim": .6 }, {
           y: 0, "--st-dim": 0, ease: "none",
           scrollTrigger: { trigger: ".final-cta", start: "bottom bottom", end: () => `+=${footer.offsetHeight}`, scrub: true },
@@ -1005,7 +1068,7 @@ function App() {
 
       <section className="manifesto" id="system">
         <div className="manifesto-stage">
-          <video className="manifesto-video" muted loop playsInline preload="none" poster="/media/second-section-video-poster.webp"><source src="/media/second-section-video-final.mp4" type="video/mp4" /></video>
+          <video className="manifesto-video" muted loop playsInline preload="none" poster="/media/manifesto-gym-poster.webp"><source src="/media/manifesto-gym.mp4" type="video/mp4" /></video>
           <div className="manifesto-video-wash" aria-hidden="true" />
           <p className="section-kicker" data-reveal>Built for your next session.</p>
           <div className="manifesto-grid">
@@ -1077,7 +1140,7 @@ function App() {
             ))}
           </div>
         </div>
-        <div className="pricing-plans">
+        <div className="pricing-plans" data-settle-focus>
           <article className="pricing-plan" aria-labelledby="free-plan" data-reveal>
             <h3 id="free-plan">Free</h3>
             <p className="plan-price"><span>$0</span><span>Forever</span></p>
@@ -1119,7 +1182,7 @@ function App() {
         <FinalParticles reduced={reduced} />
         <div className="final-stage" aria-hidden="true">
           {/* Light loop made in EffectCraft (design/effects/final_light.jsx): fog and slow shafts on black, screen-blended. */}
-          {!reduced && <video className="final-light" muted loop playsInline preload="metadata" tabIndex={-1}><source src="/media/final-light.webm" type="video/webm" /><source src="/media/final-light.mp4" type="video/mp4" /></video>}
+          {!reduced && <video className="final-light" muted loop playsInline preload="none" tabIndex={-1}><source src="/media/final-light.webm" type="video/webm" /><source src="/media/final-light.mp4" type="video/mp4" /></video>}
           <i className="final-spot" /><i className="final-floor" /><i className="final-rim" />
         </div>
         <div className="final-glow" />

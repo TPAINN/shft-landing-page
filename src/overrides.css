@@ -1655,3 +1655,43 @@ section[id] { scroll-margin-top: 80px; }
 .site-footer { position: sticky; bottom: 0; z-index: 0; }
 .site-footer::after { content: ""; position: absolute; inset: 0; background: #000; opacity: var(--st-dim, 0); pointer-events: none; }
 .final-cta { z-index: 3; }
+
+/* ---- 15 Nov: the footer is only ever seen under the final section ---- */
+.site.footer-held .site-footer { visibility: hidden; }
+
+/* ---- 15 Nov: pricing fits a short laptop screen whole ----
+   On a 768px or 720px tall screen the two plans were taller than the space under the nav, so the
+   section could never rest with the Download button and the Premium footer both in view. Same
+   layout, tighter vertical rhythm, only where the height is short. */
+@media (min-width: 821px) and (max-height: 860px) {
+  .pricing-plan { padding-top: 20px; }
+  .pricing-plan-premium { padding: 20px 22px 18px; }
+  .pricing-plan .plan-price { margin: 12px 0 12px; }
+  .pricing-plan .plan-price span:first-child { font-size: clamp(54px, 9.4vh, 76px); }
+  .pricing-plan .plan-description { margin-bottom: 16px; }
+  .premium-peek { aspect-ratio: 2 / 1; margin: 2px 0 14px; }
+  .pricing-plan li + li { margin-top: 9px; }
+  .pricing-plan .plan-cta-note { margin-top: 14px; }
+}
+@media (min-width: 821px) and (max-height: 740px) {
+  .premium-peek { aspect-ratio: 5 / 2; }
+  .pricing-plan { padding-top: 14px; }
+  .pricing-plan-premium { padding: 16px 20px 14px; }
+  .pricing-plan .plan-price { margin: 8px 0; }
+  .pricing-plan .plan-description { margin-bottom: 10px; }
+  .pricing-plan .plan-cta, .pricing-plan .plan-cta-note { margin-top: 10px; }
+  .pricing-plan .plan-cta-note { padding-top: 10px; }
+  .pricing-plan li + li { margin-top: 7px; }
+}
+
+/* ---- 15 Nov: depth and motion refinements ---- */
+/* Premium card: a soft light follows the cursor. Mouse only; nothing changes at rest. */
+.pricing-plan-premium::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 0%), rgba(166, 228, 175, .13), transparent 62%);
+  transition: opacity .45s cubic-bezier(.22, 1, .36, 1); }
+@media (hover: hover) and (pointer: fine) { .pricing-plan-premium:hover::after { opacity: 1; } }
+.pricing-plan-premium > * { position: relative; z-index: 1; }
+/* The manifesto footage keeps its light source in frame on a tall phone screen. */
+/* Its light bar sits behind the headline, so the footage is held a little darker than before. */
+.manifesto-video { filter: saturate(.9) contrast(1.04) brightness(.66); }
+@media (max-width: 820px) { .manifesto-video { object-position: 32% 50%; filter: saturate(.9) contrast(1.04) brightness(.86); } }
