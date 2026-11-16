@@ -1469,8 +1469,11 @@ section[id] { scroll-margin-top: 80px; }
 .final-glow { opacity: .55; width: 46vmin; height: 60vmin; filter: blur(70px); background: radial-gradient(ellipse, rgba(140, 230, 170, .16), transparent 70%); }
 .final-phones { height: auto; min-height: min(78svh, 760px); }
 .final-device { position: relative; width: clamp(240px, 23vw, 360px); aspect-ratio: 1061 / 2194;
-  filter: drop-shadow(0 50px 60px rgba(0, 0, 0, .65)) drop-shadow(0 0 1px rgba(255, 255, 255, .08));
   animation: final-device-float 8s ease-in-out infinite alternate; will-change: transform; }
+/* The drop-shadow used to be a filter on the whole phone, so every frame of the screen recording
+   re-ran a 60px blur. The same shadow is now a box-shadow on a static shape behind the phone. */
+.final-device::before { content: ""; position: absolute; inset: 1.2% 2.4% 1.2%; z-index: -1; border-radius: 13.5% / 6.6%;
+  box-shadow: 0 50px 60px rgba(0, 0, 0, .65), 0 0 1px rgba(255, 255, 255, .08); pointer-events: none; }
 .final-device::after { content: ""; position: absolute; inset: -6% -12% -10%; z-index: -1; border-radius: 50%;
   background: radial-gradient(closest-side, rgba(150, 235, 180, .14), transparent 72%); }
 .final-device-screen { position: absolute; left: 4.053%; top: 1.641%; width: 91.894%; height: 96.764%; overflow: hidden; border-radius: 12% / 5.6%; background: #070907; }
@@ -1577,11 +1580,10 @@ section[id] { scroll-margin-top: 80px; }
 @media (max-width: 820px) { .footer-built { text-align: left; } .footer-actions { justify-content: flex-start; } }
 
 /* Final stage light (EffectCraft loop): screen-blended so its black vanishes, focused behind the phone */
+/* The brightness, contrast and radial mask are baked into the video (design/effects/bake_final_light.sh
+   in the app repo): under a screen blend, darkening to black is exactly the same as masking out. */
 .final-light { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none;
-  mix-blend-mode: screen; opacity: 1; filter: brightness(1.7) contrast(1.08);
-  -webkit-mask-image: radial-gradient(60% 75% at 70% 42%, #000 20%, rgba(0, 0, 0, .55) 55%, transparent 88%);
-  mask-image: radial-gradient(60% 75% at 70% 42%, #000 20%, rgba(0, 0, 0, .55) 55%, transparent 88%); }
-@media (max-width: 820px) { .final-light { -webkit-mask-image: radial-gradient(90% 60% at 50% 72%, #000 20%, transparent 90%); mask-image: radial-gradient(90% 60% at 50% 72%, #000 20%, transparent 90%); } }
+  mix-blend-mode: screen; opacity: 1; }
 
 /* ───────────────────────────────────────────────────────────────────────────
    REFINEMENTS · 10 Nov 2026 — download hover, rolling price, premium peek, section transitions
@@ -1653,7 +1655,7 @@ section[id] { scroll-margin-top: 80px; }
 .hero { position: relative; }
 .st-overlay { position: absolute; inset: 0; z-index: 5; background: #000; opacity: 0; pointer-events: none; }
 .site-footer { position: sticky; bottom: 0; z-index: 0; }
-.site-footer::after { content: ""; position: absolute; inset: 0; background: #000; opacity: var(--st-dim, 0); pointer-events: none; }
+.site-footer .footer-dim { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 2; }
 .final-cta { z-index: 3; }
 
 /* ---- 15 Nov: the footer is only ever seen under the final section ---- */
@@ -1695,3 +1697,16 @@ section[id] { scroll-margin-top: 80px; }
 /* Its light bar sits behind the headline, so the footage is held a little darker than before. */
 .manifesto-video { filter: saturate(.9) contrast(1.04) brightness(.66); }
 @media (max-width: 820px) { .manifesto-video { object-position: 32% 50%; filter: saturate(.9) contrast(1.04) brightness(.86); } }
+
+/* ---- 16 Nov: phone legibility and reach ----
+   On a 360-390px screen the small uppercase labels were 9-11px and one footer link was 37px wide.
+   Same layout and hierarchy; the smallest type steps up to 12px and every link is at least 44px. */
+@media (max-width: 820px) {
+  .site-nav .nav-cta, .site-nav .nav-links a { font-size: 12px; min-height: 44px; display: inline-flex; align-items: center; }
+  .hero-scroll span { font-size: 11px; }
+  .section-kicker, .chapter-index { font-size: 12px; }
+  .final-actions .text-link { font-size: 13px; min-height: 44px; display: inline-flex; align-items: center; }
+  .billing-save, .plan-tag { font-size: 12px; }
+  .footer-meta span, .footer-meta p { font-size: 12px; line-height: 1.6; }
+  .footer-legal a { min-width: 44px; }
+}

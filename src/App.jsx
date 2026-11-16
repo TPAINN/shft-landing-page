@@ -173,7 +173,8 @@ function FinalParticles({ reduced }) {
         ctx.fillStyle = `rgba(190, 240, 205, ${glow.toFixed(3)})`; ctx.fill();
       }
     };
-    const loop = (t) => { draw(t); raf = visible && !document.hidden ? requestAnimationFrame(loop) : 0; };
+    let lastDraw = 0;
+    const loop = (t) => { if (t - lastDraw >= 32) { lastDraw = t; draw(t); } raf = visible && !document.hidden ? requestAnimationFrame(loop) : 0; };
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && !raf && !reduced) raf = requestAnimationFrame(loop); });
     const onVis = () => { if (!document.hidden && visible && !raf && !reduced) raf = requestAnimationFrame(loop); };
     size(); draw(0); io.observe(el);
@@ -202,8 +203,8 @@ function FinalPhone({ reduced }) {
       {reduced
         ? <img src="/media/shft-welcome-poster.webp" alt="" loading="lazy" decoding="async" />
         : <video ref={video} muted loop playsInline preload="none" poster="/media/shft-welcome-poster.webp">
-            <source src="/media/shft-welcome-loop.webm" type="video/webm" />
-            <source src="/media/shft-welcome-loop.mp4" type="video/mp4" />
+            <source src="/media/shft-welcome-loop-640.webm" type="video/webm" />
+            <source src="/media/shft-welcome-loop-640.mp4" type="video/mp4" />
           </video>}
     </div>
     <img className="final-device-frame" src="/media/iphone18-frame.webp" alt="" width="1061" height="2194" loading="lazy" decoding="async" />
@@ -920,9 +921,11 @@ function App() {
         }
       }
 
-      gsap.fromTo(".final-stage", { scale: .955, borderRadius: isTouch ? 34 : 64 }, {
-        scale: 1, borderRadius: isTouch ? 28 : 48, ease: "power1.out",
-        scrollTrigger: { trigger: ".final-cta", start: "top bottom", end: "top 25%", scrub: .6 },
+      const finalStage = document.querySelector(".final-stage");
+      gsap.fromTo(finalStage, { scale: .955 }, {
+        scale: 1, ease: "power1.out", force3D: true,
+        scrollTrigger: { trigger: ".final-cta", start: "top bottom", end: "top 25%", scrub: .6,
+          onToggle: (self) => { if (finalStage) finalStage.style.willChange = self.isActive ? "transform" : ""; } },
       });
 
       // Section transitions. The hero falls back slower than the page and dims while the manifesto
@@ -948,10 +951,14 @@ function App() {
           onToggle: (self) => site.classList.toggle("footer-held", !self.isActive && self.progress === 0),
           onRefresh: (self) => site.classList.toggle("footer-held", self.progress === 0 && !self.isActive),
         });
-        gsap.fromTo(footer, { y: isTouch ? 0 : 140, "--st-dim": .6 }, {
-          y: 0, "--st-dim": 0, ease: "none",
-          scrollTrigger: { trigger: ".final-cta", start: "bottom bottom", end: () => `+=${footer.offsetHeight}`, scrub: true },
-        });
+        const footerDim = document.createElement("div");
+        footerDim.className = "footer-dim"; footerDim.setAttribute("aria-hidden", "true");
+        footer.append(footerDim);
+        contextCleanups.push(() => footerDim.remove());
+        gsap.timeline({ scrollTrigger: { trigger: ".final-cta", start: "bottom bottom", end: () => `+=${footer.offsetHeight}`, scrub: true,
+          onToggle: (self) => { footer.style.willChange = self.isActive ? "transform" : ""; } } })
+          .fromTo(footer, { y: isTouch ? 0 : 140 }, { y: 0, ease: "none", force3D: true }, 0)
+          .fromTo(footerDim, { opacity: .6 }, { opacity: 0, ease: "none" }, 0);
       }
 
       const communityStory = gsap.timeline({
@@ -1182,7 +1189,7 @@ function App() {
         <FinalParticles reduced={reduced} />
         <div className="final-stage" aria-hidden="true">
           {/* Light loop made in EffectCraft (design/effects/final_light.jsx): fog and slow shafts on black, screen-blended. */}
-          {!reduced && <video className="final-light" muted loop playsInline preload="none" tabIndex={-1}><source src="/media/final-light.webm" type="video/webm" /><source src="/media/final-light.mp4" type="video/mp4" /></video>}
+          {!reduced && <video className="final-light" muted loop playsInline preload="none" tabIndex={-1}><source src="/media/final-light-baked-mobile.webm" type="video/webm" media="(max-width: 820px)" /><source src="/media/final-light-baked-mobile.mp4" type="video/mp4" media="(max-width: 820px)" /><source src="/media/final-light-baked.webm" type="video/webm" /><source src="/media/final-light-baked.mp4" type="video/mp4" /></video>}
           <i className="final-spot" /><i className="final-floor" /><i className="final-rim" />
         </div>
         <div className="final-glow" />
