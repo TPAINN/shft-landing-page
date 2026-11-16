@@ -881,7 +881,10 @@ function App() {
       gsap.utils.toArray(".manifesto, .training-system, .community-scene, .pricing-section").forEach((section) => {
         gsap.fromTo(section, { clipPath: seam }, {
           clipPath: open, ease: "power2.out",
-          scrollTrigger: { trigger: section, start: "top bottom", end: "top 12%", scrub: 1.1 },
+          scrollTrigger: { trigger: section, start: "top bottom", end: "top 12%", scrub: 1.1,
+            // While the seam opens, the section is its own layer, so moving the clip re-composites a
+            // picture that is already drawn instead of repainting the whole section every frame.
+            onToggle: (self) => { section.style.willChange = self.isActive ? "transform" : ""; } },
         });
       });
 
