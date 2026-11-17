@@ -325,7 +325,7 @@ function CommunityWall({ reduced }) {
 }
 
 /* The Android build hosted on this site. Version, size and minimum Android are read off the build. */
-const APK = { href: "/download/shft-1.20.9.apk", version: "1.20.9", size: "21 MB", android: "Android 7+" };
+const APK = { href: "/download/shft-1.21.0.apk", version: "1.21.0", size: "21 MB", android: "Android 7+" };
 const PRICES = {
   monthly: { price: "$2.99", value: 2.99, per: "per month", note: "Cancel any time" },
   yearly: { price: "$23.99", value: 23.99, per: "per year", note: "About $2.00 a month · save 33%" },
