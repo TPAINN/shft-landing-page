@@ -1136,7 +1136,7 @@ function App() {
         </div>
         <div className="phone-mockup is-pixel" aria-label="Shft app preview on a Google Pixel 9 Pro">
           <div className="phone-display">
-            {chapters.map((chapter, index) => <img className={`phone-screen ${index === 0 ? "is-current" : ""}`} src={chapter.screenImage} alt={chapter.screenAlt} key={chapter.name} loading="lazy" decoding="async" width="900" height="2008" />)}
+            {chapters.map((chapter, index) => <img className={`phone-screen ${index === 0 ? "is-current" : ""}`} src={chapter.screenImage} alt={chapter.screenAlt} key={chapter.name} loading="eager" fetchPriority="low" decoding="async" width="900" height="2008" />)}
             <span className="phone-touch" aria-hidden="true"><i /></span>
           </div>
           <img className="phone-frame" src="/media/pixel9pro-frame.webp" alt="" width="1000" height="2110" decoding="async" />
