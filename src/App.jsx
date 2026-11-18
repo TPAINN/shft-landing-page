@@ -12,49 +12,63 @@ const chapters = [
     step: "01",
     name: "Build",
     title: "Build a plan you trust.",
-    copy: "Choose your split. Shape the week before your first set.",
-    screenImage: "/media/shft-ios-plan-builder.webp",
-    screenAlt: "Shft plan builder with a Tuesday lower-body day",
+    copy: "Pick a split. Every muscle shows its weekly sets, and one tap explains anything off target.",
+    screenImage: "/media/shft-pixel-01-build.webp",
+    screenAlt: "Shft plan builder with plan insights: weekly sets per muscle, all on target",
+    touch: [0.5, 0.876],
   },
   {
     step: "02",
     name: "Learn",
     title: "Know every lift.",
-    copy: "Illustrated technique, the muscles it hits, and cues you can use mid-set.",
-    screenImage: "/media/shft-ios-exercise-detail.webp",
-    screenAlt: "Shft exercise detail screen for the barbell bench press",
+    copy: "Illustrated technique, the muscles it works, and cues you can use mid-set.",
+    screenImage: "/media/shft-pixel-02-learn.webp",
+    screenAlt: "Shft exercise detail for the barbell bench press",
+    touch: [0.092, 0.105],
   },
   {
     step: "03",
     name: "Lift",
-    title: "Stay with the work.",
-    copy: "Log sets, reps, and rest without leaving the floor.",
-    screenImage: "/media/shft-ios-active-session.webp",
-    screenAlt: "Shft active workout screen",
+    title: "Log it. Beat it.",
+    copy: "Last session's numbers are already filled in. A new best gets its moment on screen.",
+    screenImage: "/media/shft-pixel-03-lift.webp",
+    screenAlt: "Shft workout screen showing a new best on the bench press",
+    touch: [0.913, 0.428],
   },
   {
     step: "04",
     name: "Review",
-    title: "See every set count.",
-    copy: "Every session ends with your sets, your time, and any new records.",
-    screenImage: "/media/shft-ios-session-summary.webp",
-    screenAlt: "Shft session summary screen",
+    title: "See what you did.",
+    copy: "Every session ends with your highlights, your best sets, and the muscles you trained.",
+    screenImage: "/media/shft-pixel-04-review.webp",
+    screenAlt: "Shft session summary with today's highlight and top set",
+    touch: "swipe",
   },
   {
     step: "05",
     name: "Recover",
     title: "Train what is ready.",
-    copy: "Recovery clocks built from your own sessions show which days are ready and which muscles still need time.",
-    screenImage: "/media/shft-ios-recovery.webp",
-    screenAlt: "Shft recovery screen with each plan day's readiness and a muscle map",
+    copy: "Recovery clocks built from your own sessions show which days are ready and which muscles need time.",
+    screenImage: "/media/shft-pixel-05-recover.webp",
+    screenAlt: "Shft recovery screen with each day's readiness and a muscle map",
+    touch: [0.908, 0.1],
   },
   {
     step: "06",
     name: "Progress",
-    title: "See what to do next.",
-    copy: "A weekly streak and a volume heatmap show where to add work next.",
-    screenImage: "/media/shft-ios-progress.webp",
+    title: "See where to add work.",
+    copy: "A weekly streak and a volume heatmap show what every muscle got, week by week.",
+    screenImage: "/media/shft-pixel-06-progress.webp",
     screenAlt: "Shft progress screen with the weekly streak and volume heatmap",
+    touch: [0.908, 0.1],
+  },
+  {
+    step: "07",
+    name: "Remember",
+    title: "Every workout, remembered.",
+    copy: "A calendar of your training, every set and note, and how each week compares with the last.",
+    screenImage: "/media/shft-pixel-07-history.webp",
+    screenAlt: "Shft history as a month calendar of training days",
   },
 ];
 
@@ -198,7 +212,7 @@ function FinalPhone({ reduced }) {
     io.observe(v); document.addEventListener("visibilitychange", onVis);
     return () => { io.disconnect(); document.removeEventListener("visibilitychange", onVis); };
   }, [reduced]);
-  return <div className="final-device">
+  return <div className="final-device is-pixel">
     <div className="final-device-screen">
       {reduced
         ? <img src="/media/shft-welcome-poster.webp" alt="" loading="lazy" decoding="async" />
@@ -207,7 +221,7 @@ function FinalPhone({ reduced }) {
             <source src="/media/shft-welcome-loop-640.mp4" type="video/mp4" />
           </video>}
     </div>
-    <img className="final-device-frame" src="/media/iphone18-frame.webp" alt="" width="1061" height="2194" loading="lazy" decoding="async" />
+    <img className="final-device-frame" src="/media/pixel9pro-frame.webp" alt="" width="1000" height="2110" loading="lazy" decoding="async" />
   </div>;
 }
 
@@ -325,7 +339,7 @@ function CommunityWall({ reduced }) {
 }
 
 /* The Android build hosted on this site. Version, size and minimum Android are read off the build. */
-const APK = { href: "/download/shft-1.21.0.apk", version: "1.21.0", size: "21 MB", android: "Android 7+" };
+const APK = { href: "/download/shft-1.22.0.apk", version: "1.22.0", size: "21 MB", android: "Android 7+" };
 const PRICES = {
   monthly: { price: "$2.99", value: 2.99, per: "per month", note: "Cancel any time" },
   yearly: { price: "$23.99", value: 23.99, per: "per year", note: "About $2.00 a month · save 33%" },
@@ -714,8 +728,25 @@ function App() {
       // Stack Push per chapter: the current iOS screen shifts left and dims while the
       // next enters from the right — it reads as navigation, not a crossfade. Chapter
       // copy hands off sequentially so two titles never overlap mid-scroll.
+      // A fingertip presses the real control on the outgoing screen (or swipes it up), then the push.
+      const touchDot = document.querySelector(".phone-touch");
+      const touchRing = touchDot && touchDot.querySelector("i");
       for (let index = 1; index < panels.length; index++) {
         const at = CHAPTER_START + (index - 1) * CHAPTER_STEP;
+        const touch = chapters[index - 1].touch;
+        if (touchDot && touch) {
+          const swipe = touch === "swipe";
+          const [tx, ty] = swipe ? [0.5, 0.78] : touch;
+          systemStory
+            .set(touchDot, { left: `${tx * 100}%`, top: `${ty * 100}%` }, at - .4)
+            .fromTo(touchDot, { autoAlpha: 0, scale: 1.5 }, { autoAlpha: 1, scale: 1, duration: .16, ease: "power2.out" }, at - .4)
+            .to(touchDot, { scale: .78, duration: .08, ease: "power2.in" }, at - .22)
+            .fromTo(touchRing, { scale: .6, autoAlpha: .9 }, { scale: 2.6, autoAlpha: 0, duration: .26, ease: "power2.out" }, at - .16);
+          if (swipe) systemStory
+            .to(touchDot, { top: "38%", duration: .26, ease: "power2.inOut" }, at - .14)
+            .to(phoneScreens[index - 1], { yPercent: -7, duration: .26, ease: "power2.inOut" }, at - .14);
+          systemStory.to(touchDot, { autoAlpha: 0, scale: 1.15, duration: .12, ease: "power1.out" }, at + (swipe ? .1 : -.06));
+        }
         systemStory
           .to(panels[index - 1], { autoAlpha: 0, y: -20, duration: .34 }, at + .14)
           .set(phoneScreens[index], { zIndex: index + 1 }, at)
@@ -1099,19 +1130,16 @@ function App() {
               <div className="chapter-index">{chapter.step} / {chapter.name}</div>
               <h2>{chapter.title}</h2>
               <p>{chapter.copy}</p>
-              {reduced && <img className="chapter-static-screen" src={chapter.screenImage} alt={chapter.screenAlt} width="430" height="900" loading="lazy" decoding="async" />}
+              {reduced && <img className="chapter-static-screen" src={chapter.screenImage} alt={chapter.screenAlt} width="900" height="2008" loading="lazy" decoding="async" />}
             </article>
           ))}
         </div>
-        <div className="phone-mockup" aria-label="Shft app preview">
-          <span className="phone-button phone-button-mute" aria-hidden="true" />
-          <span className="phone-button phone-button-volume-up" aria-hidden="true" />
-          <span className="phone-button phone-button-volume-down" aria-hidden="true" />
-          <span className="phone-button phone-button-power" aria-hidden="true" />
+        <div className="phone-mockup is-pixel" aria-label="Shft app preview on a Google Pixel 9 Pro">
           <div className="phone-display">
-            {chapters.map((chapter, index) => <img className={`phone-screen ${index === 0 ? "is-current" : ""}`} src={chapter.screenImage} alt={chapter.screenAlt} key={chapter.name} loading="lazy" decoding="async" width="430" height="900" />)}
-            <div className="phone-island" aria-hidden="true" />
+            {chapters.map((chapter, index) => <img className={`phone-screen ${index === 0 ? "is-current" : ""}`} src={chapter.screenImage} alt={chapter.screenAlt} key={chapter.name} loading="lazy" decoding="async" width="900" height="2008" />)}
+            <span className="phone-touch" aria-hidden="true"><i /></span>
           </div>
+          <img className="phone-frame" src="/media/pixel9pro-frame.webp" alt="" width="1000" height="2110" decoding="async" />
         </div>
       </section>
 

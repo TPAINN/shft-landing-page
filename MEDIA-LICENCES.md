@@ -6,6 +6,8 @@ Every training clip and still on the landing page, with where it came from. Reco
 - **Mixkit** clips are used under the Mixkit Stock Video Free Licence: free for commercial use, no attribution required. https://mixkit.co/license/#videoFree
 - Each clip was trimmed, cropped, colour graded and compressed (`design/clips/process.sh` in the app repo).
 - `hero-motion-*` was sourced from Pexels by the owner before this record was started; its page link is not recorded here.
+- `pixel9pro-frame.webp` is cut from the free "Google Pixel 9 Pro Mockups" by d6 store (https://www.behance.net/gallery/207713921/Google-Pixel-9-Pro-Mockups-Free-Download, downloads via Gumroad, Freepik or UI8). Credited on /licenses/. The owner should confirm which source it came from: Freepik's free licence requires attribution, which the credit covers.
+- `shft-pixel-*.webp` are 1.22.0 app screens rendered from the app (`design/landing/capture_screens.mjs` in the app repo).
 - `shft-*`, `premium-preview.*`, `final-light.*`, `og-shft-v2.jpg` and the app screens are made in-house.
 
 | File in `public/media` | Source | Title | Page |
